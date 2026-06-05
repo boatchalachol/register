@@ -1195,8 +1195,22 @@ function syncSettingsUI(){
   const td=document.getElementById('thDist');if(td)td.style.display=locOn?'':'none';
 }
 
-function simpleHash(str){let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h)^str.charCodeAt(i);const u=((h%4294967296)+4294967296)%4294967296;return u.toString(36).toUpperCase().padStart(6,'0');}
-function generateQRToken(cpId){const rotMin=parseInt(document.getElementById('rotationMinutes').value);const now=Date.now();const slot=rotMin>0?Math.floor(now/(rotMin*60*1000)):0;return `${cpId}-${slot}-${simpleHash(`${cpId}|${slot}|${ADMIN_SECRET}`)}`;}
+function simpleHash(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h, 33) ^ str.charCodeAt(i);
+  }
+  const u = ((h % 4294967296) + 4294967296) % 4294967296;
+  return u.toString(36).toUpperCase().padStart(6, '0');
+}
+
+function generateQRToken(cpId) {
+  const rotMin = parseInt(document.getElementById('rotationMinutes').value);
+  const now = Date.now();
+  const slot = rotMin > 0 ? Math.floor(now / (rotMin * 60 * 1000)) : 0;
+  const hash = simpleHash(cpId + '|' + slot + '|' + 'MYSECRET2024');
+  return cpId + '-' + slot + '-' + hash;
+}
 function getTokenExpiry(){const rotMin=parseInt(document.getElementById('rotationMinutes').value);if(rotMin===0)return null;const now=Date.now(),slotMs=rotMin*60*1000;return new Date((Math.floor(now/slotMs)+1)*slotMs);}
 
 function generateAllQR(){
