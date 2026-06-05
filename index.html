@@ -1161,7 +1161,7 @@ async function loadSettings(){
       featureFlags.qrEnabled      =s.QREnabled!==undefined?t(s.QREnabled):true;
       featureFlags.locationEnabled=t(s.LocationEnabled);
       featureFlags.radiusEnabled  =t(s.RadiusLockEnabled);
-      featureFlags.rotationMinutes=parseInt(s.QRRotationMinutes)||60;
+      featureFlags.rotationMinutes=s.QRRotationMinutes!=null&&s.QRRotationMinutes!==''?parseInt(s.QRRotationMinutes):60;
       document.getElementById('togQR').checked      =featureFlags.qrEnabled;
       document.getElementById('togLocation').checked=featureFlags.locationEnabled;
       document.getElementById('togRadius').checked  =featureFlags.radiusEnabled;
