@@ -1122,8 +1122,8 @@ async function doRegister(){
     const ts=new Date(res.ts);
     document.getElementById('successSub').textContent=`${currentUser.name} · ${selectedCp.name}`;
     document.getElementById('successGrid').innerHTML=`
-      <div class="info-cell"><div class="ic-lbl">เวลา</div><div class="ic-val teal">${ts.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div></div>
-      <div class="info-cell"><div class="ic-lbl">วันที่</div><div class="ic-val">${ts.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</div></div>
+      <div class="info-cell"><div class="ic-lbl">เวลา</div><div class="ic-val teal">${ts.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'})}</div></div>
+      <div class="info-cell"><div class="ic-lbl">วันที่</div><div class="ic-val">${ts.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric',timeZone:'Asia/Bangkok'})}</div></div>
       <div class="info-cell"><div class="ic-lbl">จุดลงทะเบียน</div><div class="ic-val">${escHtml(selectedCp.name)}</div></div>
       <div class="info-cell"><div class="ic-lbl">ระยะห่าง</div><div class="ic-val teal">${res.distanceM} ม.</div></div>
       <div class="info-cell ic-span"><div class="ic-lbl">Registration ID</div><div class="ic-val" style="font-family:var(--mono);font-size:12px">${escHtml(res.regId)}</div></div>`;
