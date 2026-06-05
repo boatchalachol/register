@@ -796,11 +796,7 @@ function switchScanTab(tab){
 // ============================================================
 // LIVE CAMERA SCANNER
 // ============================================================
-async function startScanner(){
-    if (window.self !== window.top) {
-    onCameraFailed('กล้องสดไม่สามารถใช้ใน iframe ได้');
-    return;
-  }
+async function startScanner(){  
   if(scannerRunning) return;
   const video=document.getElementById('qrVideo'), status=document.getElementById('scannerStatus');
   document.getElementById('qrTokenStrip').style.display='none';
