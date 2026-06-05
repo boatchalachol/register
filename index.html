@@ -1233,7 +1233,7 @@ async function loadDashboard(){
     document.getElementById('statCp').textContent=d.activeCp??'—';
     document.getElementById('statEmp').textContent=d.activeEmp??'—';
     const tbody=document.getElementById('recentTable'),recent=d.recent||[],locOn=featureFlags.locationEnabled;
-    tbody.innerHTML=recent.length?recent.map(r=>`<tr><td class="name">${r.empName||'—'}</td><td>${r.cpName||'—'}</td><td>${r.ts?new Date(r.ts).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'—'}</td>${locOn?`<td><span style="color:var(--teal)">${r.distanceM??'—'}</span></td>`:''}</tr>`).join(''):`<tr><td colspan="${locOn?4:3}" style="text-align:center;color:var(--text3);padding:20px">ยังไม่มีข้อมูล</td></tr>`;
+    tbody.innerHTML=recent.length?recent.map(r=>`<tr><td class="name">${r.empName||'—'}</td><td>${r.cpName||'—'}</td><td>${r.ts?new Date(r.ts).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'}):'—'}</td>${locOn?`<td><span style="color:var(--teal)">${r.distanceM??'—'}</span></td>`:''}</tr>`).join(''):`<tr><td colspan="${locOn?4:3}" style="text-align:center;color:var(--text3);padding:20px">ยังไม่มีข้อมูล</td></tr>`;
   }catch(e){showAlert('dashAlert','โหลดข้อมูลไม่ได้: '+e.message,'error');}
 }
 
