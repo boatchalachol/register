@@ -14,7 +14,7 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
 <style>
-:root {
+:root{
   --bg:#0a0d14;--bg2:#111520;--bg3:#161c2a;
   --surface:#1c2335;--surface2:#232d40;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
@@ -24,21 +24,20 @@
   --amber:#f5a623;--amber-bg:rgba(245,166,35,0.09);--amber-bd:rgba(245,166,35,0.25);
   --red:#f25555;--red-bg:rgba(242,85,85,0.09);--red-bd:rgba(242,85,85,0.25);
   --blue:#4a9cf0;--blue-bg:rgba(74,156,240,0.09);--blue-bd:rgba(74,156,240,0.25);
-  --font:'Noto Sans Thai',sans-serif;
-  --mono:'IBM Plex Mono',monospace;
+  --font:'Noto Sans Thai',sans-serif;--mono:'IBM Plex Mono',monospace;
   --r:12px;--r2:16px;
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bot:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overscroll-behavior:none}
 body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;min-height:100dvh}
-
-.loading-overlay{position:fixed;inset:0;background:rgba(10,13,20,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px;backdrop-filter:blur(4px)}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulsing{animation:pulse 1.2s ease-in-out infinite}
 .spinner{width:34px;height:34px;border:3px solid rgba(255,255,255,.12);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite}
+.loading-overlay{position:fixed;inset:0;background:rgba(10,13,20,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px;backdrop-filter:blur(4px)}
 .loading-text{font-size:14px;color:var(--text2)}
-
 .header{width:100%;background:var(--bg2);border-bottom:1px solid var(--border);padding:calc(14px + var(--safe-top)) 18px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
 .h-brand{display:flex;align-items:center;gap:12px}
 .h-logo{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
@@ -52,46 +51,36 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .htab.active{background:var(--surface2);color:var(--amber);font-weight:500}
 .htab-danger{color:var(--red)!important}
 @media(max-width:480px){.htab{padding:6px 8px;font-size:11px}}
-
 .view{display:none;width:100%;flex:1}
 .view.active{display:flex;flex-direction:column;align-items:center}
-
 #view-login{justify-content:center;padding-top:48px}
 .login-wrap{width:100%;max-width:400px;padding:0 16px 40px}
 .login-logo{width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:32px;color:#051a11;margin:0 auto 20px}
 .login-title{font-size:24px;font-weight:700;text-align:center;margin-bottom:4px}
 .login-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:28px}
-
 #view-emp{align-items:stretch}
 .emp-main{width:100%;max-width:480px;padding:20px 16px calc(32px + var(--safe-bot));flex:1;margin:0 auto}
-
 #view-admin{align-items:stretch}
 .admin-main{width:100%;max-width:880px;padding:20px 16px calc(60px + var(--safe-bot))}
-
 .apage{display:none}
 .apage.active{display:block}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:600px){.grid2{grid-template-columns:1fr}}
-
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:14px}
 .card-title{font-size:16px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
 .card-sub{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.55}
 .section-head{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin:18px 0 10px}
-
 .steps-bar{display:flex;align-items:center;gap:6px;margin-bottom:20px;padding:0 2px}
 .sdot{height:4px;border-radius:2px;background:var(--surface2);transition:all .35s cubic-bezier(.4,0,.2,1);flex:1}
 .sdot.active{background:var(--teal);flex:2.5}
 .sdot.done{background:var(--teal2);opacity:.6}
 .step{display:none;animation:fadeUp .3s ease both}
 .step.active{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-
 .field{margin-bottom:14px}
 .field label{font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
 .field input,.field select{width:100%;padding:13px 14px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:16px;font-family:var(--font);transition:border-color .2s,box-shadow .2s;outline:none;-webkit-appearance:none;appearance:none}
 .field input:focus,.field select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(25,212,144,.12)}
 .field input::placeholder{color:var(--text3)}
-
 .btn{width:100%;padding:14px;background:var(--teal);color:#031a0d;border:none;border-radius:var(--r);font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .18s,transform .12s,opacity .18s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.01em;-webkit-appearance:none;touch-action:manipulation}
 .btn:active{transform:scale(.97)}
 .btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
@@ -102,26 +91,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .btn-sm{width:auto;padding:7px 14px;font-size:12px;font-weight:600}
 .btn-xs{width:auto;padding:5px 10px;font-size:11px;font-weight:600}
 .mt8{margin-top:8px}
-
 .alert{padding:12px 14px;border-radius:var(--r);font-size:13px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;line-height:1.5}
 .aico{font-size:16px;flex-shrink:0;margin-top:1px}
 .a-success{background:var(--teal-bg);border:1px solid var(--teal-bd);color:var(--teal)}
 .a-error{background:var(--red-bg);border:1px solid var(--red-bd);color:#f09090}
 .a-warn{background:var(--amber-bg);border:1px solid var(--amber-bd);color:var(--amber)}
 .a-info{background:var(--blue-bg);border:1px solid var(--blue-bd);color:var(--blue)}
-
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600}
 .b-teal{background:var(--teal-bg);color:var(--teal);border:1px solid var(--teal-bd)}
 .b-red{background:var(--red-bg);color:#f09090;border:1px solid var(--red-bd)}
 .b-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
 .b-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd)}
 .b-gray{background:var(--surface);color:var(--text3);border:1px solid var(--border2)}
-
 .emp-strip{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .emp-av{width:38px;height:38px;border-radius:9px;background:var(--teal-bg);border:1px solid var(--teal-bd);display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:17px;flex-shrink:0}
 .emp-name{font-size:14px;font-weight:600}
 .emp-meta{font-size:11px;color:var(--text3);margin-top:2px}
-
 .cp-list{display:grid;gap:8px;margin-bottom:14px}
 .cp-item{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:13px 14px;cursor:pointer;transition:border-color .18s,background .18s;display:flex;align-items:center;gap:12px;touch-action:manipulation}
 .cp-item:active{background:var(--surface)}
@@ -130,8 +115,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .cp-item.sel .cp-ico{background:var(--teal-bg);color:var(--teal)}
 .cp-name{font-size:14px;font-weight:600;margin-bottom:2px}
 .cp-meta{font-size:11px;color:var(--text3);font-family:var(--mono)}
-
-/* QR Scanner — live stream */
 .qr-scanner-box{position:relative;border-radius:var(--r2);overflow:hidden;background:#000;margin-bottom:14px;aspect-ratio:1/1;max-height:320px}
 .qr-scanner-box video{width:100%;height:100%;object-fit:cover;display:block}
 .qr-scanner-box canvas{display:none}
@@ -146,8 +129,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 @keyframes scanline{0%{top:10%}50%{top:80%}100%{top:10%}}
 .qr-scanline{position:absolute;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);animation:scanline 2s ease-in-out infinite;border-radius:1px}
 .qr-scanner-status{font-size:12px;color:var(--text3);text-align:center;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px}
-
-/* Photo capture panel (LINE-friendly) */
 .photo-capture-panel{margin-bottom:12px}
 .photo-btn-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
 .photo-preview{width:100%;max-height:240px;border-radius:var(--r2);object-fit:contain;background:#000;display:none;border:1px solid var(--border2)}
@@ -156,36 +137,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .btn-photo{padding:16px;font-size:15px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#031a0d;border:none;border-radius:var(--r);width:100%;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;touch-action:manipulation;transition:opacity .18s}
 .btn-photo:active{opacity:.8}
 .photo-decode-status{font-size:13px;text-align:center;padding:8px;border-radius:var(--r);margin-top:8px}
-
-/* Scan tabs — now 3 tabs */
 .scan-tabs{display:flex;gap:3px;margin-bottom:12px;background:var(--bg3);border-radius:var(--r);padding:4px}
 .scan-tab{flex:1;padding:7px 4px;border:none;border-radius:8px;background:transparent;color:var(--text2);font-size:12px;font-family:var(--font);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:4px;font-weight:500;white-space:nowrap}
 .scan-tab.active{background:var(--surface2);color:var(--text)}
-
-/* QR Token strip */
 .qr-token-strip{background:var(--teal-bg);border:1px solid var(--teal-bd);border-radius:var(--r);padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .qr-tok-val{font-family:var(--mono);font-size:11px;color:var(--teal);flex:1;word-break:break-all}
 .qr-tok-clear{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:2px;line-height:1;touch-action:manipulation}
-
-/* Manual token */
 .manual-wrap{padding:12px 0}
 .manual-hint{font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.5;text-align:center}
 .manual-input{width:100%;padding:11px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:14px;outline:none;margin-bottom:10px;-webkit-appearance:none;letter-spacing:.05em}
 .manual-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(25,212,144,.12)}
-
-/* GPS */
 .gps-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:12px}
 .gps-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
 .gps-lbl{font-size:12px;color:var(--text2)}
 .gps-val{font-size:12px;font-family:var(--mono);color:var(--text)}
 .gps-detail{margin-top:10px}
 .gps-acc{font-size:11px;color:var(--text3);margin-top:4px}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.pulsing{animation:pulse 1.2s ease-in-out infinite}
-
 .divider{height:1px;background:var(--border);margin:14px 0}
-
-/* Success */
 .success-ico{width:68px;height:68px;border-radius:50%;background:var(--teal-bg);border:2px solid var(--teal-bd);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--teal);margin:0 auto 18px}
 .success-title{font-size:22px;font-weight:700;text-align:center;margin-bottom:5px}
 .success-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:20px}
@@ -195,8 +163,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .ic-val{font-size:14px;font-weight:600}
 .ic-val.teal{color:var(--teal)}
 .ic-span{grid-column:span 2}
-
-/* Admin toggle */
 .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px}
 .toggle-info{flex:1}
 .toggle-label{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
@@ -207,33 +173,43 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .toggle-thumb{position:absolute;top:4px;left:4px;width:18px;height:18px;background:var(--text3);border-radius:50%;transition:transform .2s,background .2s}
 .toggle input:checked~.toggle-track{background:var(--teal2);border-color:var(--teal)}
 .toggle input:checked~.toggle-thumb{transform:translateX(20px);background:#fff}
-
 .feature-status-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
 .fs-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid;transition:all .25s}
 .fs-pill.on{background:var(--teal-bg);border-color:var(--teal-bd);color:var(--teal)}
 .fs-pill.off{background:var(--red-bg);border-color:var(--red-bd);color:#f09090}
 .fs-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-
-.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:16px}
+/* QR Grid */
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;margin-bottom:16px}
 .qr-card{background:var(--bg3);border:1px solid var(--teal-bd);border-radius:var(--r2);padding:20px;text-align:center}
-.qr-card-name{font-size:15px;font-weight:600;margin-bottom:4px}
-.qr-card-id{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:14px}
-.qr-canvas-wrap{background:#fff;border-radius:10px;padding:12px;display:inline-block;margin-bottom:14px}
+.qr-card-name{font-size:15px;font-weight:600;margin-bottom:2px}
+.qr-card-id{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:12px}
+.qr-canvas-wrap{background:#fff;border-radius:10px;padding:12px;display:inline-block;margin-bottom:10px}
 .qr-canvas-wrap canvas,.qr-canvas-wrap img{display:block}
-.qr-expires{font-size:11px;color:var(--text3);margin-bottom:12px}
-.qr-expires .time{color:var(--amber);font-family:var(--mono);font-weight:600}
+.qr-expires{font-size:11px;margin-bottom:6px;padding:5px 10px;border-radius:6px}
+.qr-expires.no-exp{color:var(--text3)}
+.qr-expires.has-exp{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.qr-expires.expired{background:var(--red-bg);color:#f09090;border:1px solid var(--red-bd)}
+.qr-token-label{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:12px;word-break:break-all;padding:0 4px}
 .qr-actions{display:flex;gap:8px}
 .qr-actions .btn{font-size:12px;padding:8px}
 .token-off-banner{background:var(--bg3);border:2px dashed var(--border2);border-radius:var(--r2);padding:40px 20px;text-align:center;color:var(--text3)}
-.rotation-banner{background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:var(--r);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-
+/* expiry picker */
+.expiry-banner{background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:var(--r);padding:14px 16px;margin-bottom:12px}
+.expiry-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.expiry-label{font-size:13px;font-weight:500;color:var(--amber);display:flex;align-items:center;gap:6px;flex-shrink:0}
+.expiry-input{padding:7px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:12px;flex:1;min-width:180px;outline:none}
+.expiry-input:focus{border-color:var(--amber)}
+.preset-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.preset-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--amber-bd);background:transparent;color:var(--amber);font-size:12px;font-family:var(--font);cursor:pointer;transition:all .15s}
+.preset-btn:hover{background:var(--amber-bg)}
+.preset-btn.active-preset{background:var(--amber);color:#1a0800;font-weight:600}
+/* stats */
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
 @media(max-width:600px){.stat-grid{grid-template-columns:1fr 1fr}}
 .stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
 .stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
 .stat-num{font-size:26px;font-weight:600}
 .stat-sub{font-size:11px;color:var(--text2);margin-top:2px}
-
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;padding:10px 12px;color:var(--text3);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
@@ -241,19 +217,17 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text2)}
 td.name{color:var(--text);font-weight:500}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--surface)}
-
 .flow-map{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px}
 .flow-steps{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .flow-step{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid;transition:all .25s}
 .flow-step.active-step{background:var(--teal-bg);border-color:var(--teal-bd);color:var(--teal)}
 .flow-step.skip-step{background:var(--surface);border-color:var(--border2);color:var(--text3);text-decoration:line-through;opacity:.5}
 .flow-arrow{color:var(--text3);font-size:14px}
-
 @media print{
   body{background:#fff;color:#000}
-  .header,.view:not(.active),.loading-overlay,.btn{display:none!important}
+  .header,.view:not(.active),.loading-overlay,.btn,.expiry-banner,.preset-btns{display:none!important}
   .qr-card{border:1px solid #ccc;break-inside:avoid}
-  .qr-canvas-wrap{box-shadow:none;background:#fff}
+  .qr-canvas-wrap{background:#fff}
   .admin-main{max-width:100%;padding:0}
   .qr-grid{grid-template-columns:repeat(3,1fr)}
 }
@@ -285,19 +259,14 @@ tr:hover td{background:var(--surface)}
     <div class="login-sub">ลงทะเบียนเข้างาน · Admin Panel</div>
     <div class="card">
       <div id="loginAlert"></div>
-      <div class="field">
-        <label>รหัสพนักงาน</label>
-        <input type="text" id="loginEmpId" placeholder="เช่น 1234" maxlength="10"
-               autocomplete="off" inputmode="numeric" autocapitalize="none" autocorrect="off">
+      <div class="field"><label>รหัสพนักงาน</label>
+        <input type="text" id="loginEmpId" placeholder="เช่น 1234" maxlength="10" autocomplete="off" inputmode="numeric" autocapitalize="none" autocorrect="off">
       </div>
-      <div class="field">
-        <label>รหัสผ่าน</label>
+      <div class="field"><label>รหัสผ่าน</label>
         <input type="password" id="loginPin" placeholder="••••" maxlength="8" inputmode="numeric"
                onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin()}">
       </div>
-      <button class="btn" onclick="doLogin()" id="btnLogin">
-        <i class="ti ti-login"></i> เข้าสู่ระบบ
-      </button>
+      <button class="btn" onclick="doLogin()" id="btnLogin"><i class="ti ti-login"></i> เข้าสู่ระบบ</button>
     </div>
   </div>
 </div>
@@ -305,17 +274,11 @@ tr:hover td{background:var(--surface)}
 <!-- EMPLOYEE -->
 <div class="view" id="view-emp">
 <div class="emp-main">
-
   <div class="step active" id="estep-checkpoint">
-    <div class="steps-bar">
-      <div class="sdot active"></div><div class="sdot"></div><div class="sdot"></div>
-    </div>
+    <div class="steps-bar"><div class="sdot active"></div><div class="sdot"></div><div class="sdot"></div></div>
     <div class="emp-strip">
       <div class="emp-av"><i class="ti ti-user"></i></div>
-      <div>
-        <div class="emp-name" id="empNameDisplay">—</div>
-        <div class="emp-meta" id="empMetaDisplay">—</div>
-      </div>
+      <div><div class="emp-name" id="empNameDisplay">—</div><div class="emp-meta" id="empMetaDisplay">—</div></div>
     </div>
     <div class="card">
       <div class="card-title"><i class="ti ti-map-pin" style="color:var(--teal)"></i> เลือกจุดลงทะเบียน</div>
@@ -326,30 +289,22 @@ tr:hover td{background:var(--surface)}
           <div class="spinner" style="width:18px;height:18px;border-width:2px;flex-shrink:0"></div> กำลังโหลด...
         </div>
       </div>
-      <button class="btn" id="btnSelectCp" onclick="doSelectCheckpoint()" disabled>
-        <i class="ti ti-arrow-right"></i> ถัดไป
-      </button>
+      <button class="btn" id="btnSelectCp" onclick="doSelectCheckpoint()" disabled><i class="ti ti-arrow-right"></i> ถัดไป</button>
     </div>
   </div>
 
   <div class="step" id="estep-qr">
-    <div class="steps-bar">
-      <div class="sdot done"></div><div class="sdot active"></div><div class="sdot"></div>
-    </div>
+    <div class="steps-bar"><div class="sdot done"></div><div class="sdot active"></div><div class="sdot"></div></div>
     <div class="card">
       <div class="card-title" id="qrStepTitle"><i class="ti ti-qrcode"></i> สแกน QR Code</div>
       <div class="card-sub" id="qrStepSub">สแกน QR ที่จุดลงทะเบียน</div>
       <div id="qrAlert"></div>
-
       <div id="qrScanBlock">
-        <!-- 3 tabs: กล้องสด | ถ่ายภาพ | กรอก Token -->
         <div class="scan-tabs" id="scanTabs">
-          <button class="scan-tab active" id="tabCamera"  onclick="switchScanTab('camera')"><i class="ti ti-camera"></i> กล้องสด</button>
-          <button class="scan-tab"        id="tabPhoto"   onclick="switchScanTab('photo')"><i class="ti ti-photo-scan"></i> ถ่ายภาพ</button>
-          <button class="scan-tab"        id="tabManual"  onclick="switchScanTab('manual')"><i class="ti ti-keyboard"></i> Token</button>
+          <button class="scan-tab active" id="tabCamera" onclick="switchScanTab('camera')"><i class="ti ti-camera"></i> กล้องสด</button>
+          <button class="scan-tab" id="tabPhoto" onclick="switchScanTab('photo')"><i class="ti ti-photo-scan"></i> ถ่ายภาพ</button>
+          <button class="scan-tab" id="tabManual" onclick="switchScanTab('manual')"><i class="ti ti-keyboard"></i> Token</button>
         </div>
-
-        <!-- Tab: Live camera -->
         <div id="cameraPanel">
           <div class="qr-scanner-box" id="qrScannerBox">
             <video id="qrVideo" playsinline autoplay muted></video>
@@ -366,8 +321,6 @@ tr:hover td{background:var(--surface)}
             <div class="spinner" style="width:14px;height:14px;border-width:2px;flex-shrink:0"></div> กำลังเปิดกล้อง...
           </div>
         </div>
-
-        <!-- Tab: Photo capture (LINE WebView friendly) -->
         <div id="photoPanel" style="display:none">
           <div class="photo-capture-panel">
             <input type="file" id="photoFileInput" accept="image/*" capture="environment" onchange="onPhotoSelected(event)">
@@ -381,28 +334,22 @@ tr:hover td{background:var(--surface)}
             <div id="photoDecodeStatus"></div>
           </div>
         </div>
-
-        <!-- Tab: Manual token -->
         <div id="manualPanel" style="display:none">
           <div class="manual-wrap">
             <div class="manual-hint">กรอก QR Token ที่แสดงบนหน้าจอ Admin</div>
-            <input type="text" id="manualToken" class="manual-input" placeholder="เช่น CP001-1234-ABC123"
+            <input type="text" id="manualToken" class="manual-input" placeholder="เช่น CP001-X4KR7MN2"
                    autocapitalize="characters" autocorrect="off" spellcheck="false"
                    onkeydown="if(event.key==='Enter'){event.preventDefault();applyManualToken()}">
             <button class="btn" onclick="applyManualToken()"><i class="ti ti-check"></i> ยืนยัน Token</button>
           </div>
         </div>
-
-        <!-- Token confirmed strip -->
         <div class="qr-token-strip" id="qrTokenStrip" style="display:none">
           <i class="ti ti-circle-check" style="color:var(--teal);font-size:20px;flex-shrink:0"></i>
           <div class="qr-tok-val" id="qrTokenVal">—</div>
           <button class="qr-tok-clear" onclick="resetScan()"><i class="ti ti-x"></i></button>
         </div>
       </div>
-
       <div class="divider"></div>
-
       <div id="gpsBlock">
         <div class="gps-box">
           <div class="gps-row">
@@ -425,9 +372,7 @@ tr:hover td{background:var(--surface)}
   </div>
 
   <div class="step" id="estep-success">
-    <div class="steps-bar">
-      <div class="sdot done"></div><div class="sdot done"></div><div class="sdot done"></div>
-    </div>
+    <div class="steps-bar"><div class="sdot done"></div><div class="sdot done"></div><div class="sdot done"></div></div>
     <div class="card">
       <div class="success-ico"><i class="ti ti-check"></i></div>
       <div class="success-title">ลงทะเบียนสำเร็จ!</div>
@@ -436,7 +381,6 @@ tr:hover td{background:var(--surface)}
       <button class="btn btn-outline" onclick="resetEmpFlow()"><i class="ti ti-refresh"></i> ลงทะเบียนอีกครั้ง</button>
     </div>
   </div>
-
 </div>
 </div>
 
@@ -444,38 +388,41 @@ tr:hover td{background:var(--surface)}
 <div class="view" id="view-admin">
 <div class="admin-main">
 
+  <!-- QR Page -->
   <div class="apage active" id="apage-qr">
     <div class="card">
       <div class="card-title"><i class="ti ti-qrcode" style="color:var(--amber)"></i> QR Code ลงทะเบียน</div>
-      <div class="card-sub">สร้าง QR สำหรับแต่ละ Checkpoint</div>
+      <div class="card-sub">สร้าง QR สำหรับแต่ละ Checkpoint — กำหนดวันหมดอายุได้เอง</div>
       <div class="feature-status-bar" id="qrPageStatusBar"></div>
       <div id="qrAdminAlert"></div>
       <div id="qrTokenSection">
-        <div class="rotation-banner">
-          <span style="color:var(--amber);font-size:20px"><i class="ti ti-shield-check"></i></span>
-          <div>
-            <div style="font-size:14px;font-weight:500;color:var(--amber)">Token Rotation</div>
-            <div style="font-size:12px;color:var(--text3)">หมดอายุทุก <span id="rotationMinLabel">60</span> นาที</div>
+        <!-- Expiry picker -->
+        <div class="expiry-banner">
+          <div class="expiry-row">
+            <div class="expiry-label"><i class="ti ti-calendar-time"></i> วันหมดอายุ QR</div>
+            <input type="datetime-local" id="qrExpiryInput" class="expiry-input" placeholder="ว่าง = ไม่หมดอายุ">
           </div>
-          <div style="margin-left:auto;flex-shrink:0">
-            <select id="rotationMinutes" onchange="updateRotationLabel()" style="padding:6px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:12px">
-              <option value="15">15 นาที</option>
-              <option value="30">30 นาที</option>
-              <option value="60" selected>1 ชั่วโมง</option>
-              <option value="120">2 ชั่วโมง</option>
-              <option value="480">8 ชั่วโมง</option>
-              <option value="0">ไม่หมดอายุ</option>
-            </select>
+          <div class="preset-btns">
+            <button class="preset-btn" onclick="setExpiryPreset(0)">ไม่หมดอายุ</button>
+            <button class="preset-btn" onclick="setExpiryPreset(1/24)">1 ชั่วโมง</button>
+            <button class="preset-btn" onclick="setExpiryPreset(8/24)">8 ชั่วโมง</button>
+            <button class="preset-btn" onclick="setExpiryPreset(1)">1 วัน</button>
+            <button class="preset-btn" onclick="setExpiryPreset(7)">7 วัน</button>
+            <button class="preset-btn" onclick="setExpiryPreset(30)">30 วัน</button>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
           <p class="section-head" style="margin:0">QR Code ทุก Checkpoint</p>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-outline btn-sm" onclick="regenerateAll()"><i class="ti ti-refresh"></i> Regenerate</button>
+            <button class="btn btn-outline btn-sm" onclick="generateAllQR()"><i class="ti ti-refresh"></i> สร้างใหม่ทั้งหมด</button>
             <button class="btn btn-sm btn-amber" onclick="window.print()"><i class="ti ti-printer"></i> พิมพ์</button>
           </div>
         </div>
-        <div class="qr-grid" id="qrGrid"></div>
+        <div class="qr-grid" id="qrGrid">
+          <div style="color:var(--text3);font-size:13px;padding:12px;display:flex;align-items:center;gap:8px">
+            <div class="spinner" style="width:18px;height:18px;border-width:2px;flex-shrink:0"></div> กำลังโหลด QR...
+          </div>
+        </div>
       </div>
       <div id="qrTokenOff" style="display:none">
         <div class="token-off-banner">
@@ -486,6 +433,7 @@ tr:hover td{background:var(--surface)}
     </div>
   </div>
 
+  <!-- Dashboard -->
   <div class="apage" id="apage-dashboard">
     <div class="card">
       <div class="card-title"><i class="ti ti-chart-bar" style="color:var(--teal)"></i> Dashboard</div>
@@ -509,6 +457,7 @@ tr:hover td{background:var(--surface)}
     </div>
   </div>
 
+  <!-- Settings -->
   <div class="apage" id="apage-settings">
     <div class="card">
       <div class="card-title"><i class="ti ti-settings" style="color:var(--amber)"></i> ตั้งค่าระบบ</div>
@@ -525,22 +474,6 @@ tr:hover td{background:var(--surface)}
           <div class="toggle-sub">พนักงานต้องสแกน QR ที่จุดลงทะเบียน</div>
         </div>
         <label class="toggle"><input type="checkbox" id="togQR" checked onchange="syncSettingsUI()"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
-      </div>
-      <div id="qrSubOptions" style="padding-left:16px;border-left:2px solid var(--teal-bd);margin-bottom:16px">
-        <div class="toggle-row" style="background:transparent;border-color:transparent;padding-left:0">
-          <div class="toggle-info">
-            <div class="toggle-label" style="font-size:13px"><i class="ti ti-clock" style="color:var(--text3)"></i> Token Rotation</div>
-            <div class="toggle-sub">กำหนดอายุ Token</div>
-          </div>
-          <select id="rotationMinutesSetting" style="padding:7px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:12px;flex-shrink:0">
-            <option value="15">15 นาที</option>
-            <option value="30">30 นาที</option>
-            <option value="60" selected>1 ชั่วโมง</option>
-            <option value="120">2 ชั่วโมง</option>
-            <option value="480">8 ชั่วโมง</option>
-            <option value="0">ไม่หมดอายุ</option>
-          </select>
-        </div>
       </div>
       <p class="section-head">📍 GPS Location</p>
       <div class="toggle-row">
@@ -567,6 +500,7 @@ tr:hover td{background:var(--surface)}
     </div>
   </div>
 
+  <!-- Employees -->
   <div class="apage" id="apage-employees">
     <div class="card">
       <div class="card-title"><i class="ti ti-users" style="color:var(--blue)"></i> จัดการพนักงาน</div>
@@ -604,41 +538,46 @@ tr:hover td{background:var(--surface)}
 
 <script>
 // ============================================================
-// CONFIG
+// CONFIG — เปลี่ยน URL ให้ตรงกับ deployment ของคุณ
 // ============================================================
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxglZa54MLjuLwWIMSR386cIDlfN8MZJX_Kxu6Awaw6zm5dhv9rgxZOZmAGEZyXk0sW/exec";
-const ADMIN_SECRET    = "MYSECRET2024";
 
 // ============================================================
 // STATE
 // ============================================================
-let currentUser      = null;
-let selectedCp       = null;
-let allCps           = [];
-let sysSettings      = { LocationEnabled:true, RadiusLockEnabled:true, QREnabled:true };
+let currentUser = null, selectedCp = null, allCps = [];
+let sysSettings = { LocationEnabled:true, RadiusLockEnabled:true, QREnabled:true };
 let userLat=null, userLng=null, userAcc=null;
-let gpsReady         = false;
-let qrToken          = null;
-let gpsWatchId       = null;
-let scannerStream    = null;
-let scannerRunning   = false;
-let scannerAnimFrame = null;
-let currentTab       = 'camera';
-let cameraAvailable  = null;
-
-let adminCheckpoints = [];
-let adminEmployees   = [];
-let qrTimers         = {};
-let featureFlags     = { qrEnabled:true, locationEnabled:true, radiusEnabled:true, rotationMinutes:60 };
+let gpsReady=false, qrToken=null, gpsWatchId=null;
+let scannerStream=null, scannerRunning=false, scannerAnimFrame=null;
+let currentTab='camera', cameraAvailable=null;
+let adminCheckpoints=[], adminEmployees=[], adminQRTokens=[];
+let qrTimers={};
+let featureFlags={ qrEnabled:true, locationEnabled:true, radiusEnabled:true };
 
 // ============================================================
 // UTILS
 // ============================================================
-function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+name).classList.add('active');}
+function showView(n){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+n).classList.add('active');}
 function showEmpStep(id){document.querySelectorAll('#view-emp .step').forEach(s=>s.classList.remove('active'));const el=document.getElementById(id);if(el){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'start'});}}
-function showAdminPage(name,btnEl){document.querySelectorAll('.apage').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.htab').forEach(t=>t.classList.remove('active'));document.getElementById('apage-'+name).classList.add('active');if(btnEl instanceof Element)btnEl.classList.add('active');if(name==='dashboard')loadDashboard();if(name==='employees')loadEmployees().then(renderEmployeeTable);if(name==='settings')loadCheckpoints().then(renderCpSettings);syncSettingsUI();}
-function showAlert(id,msg,type){const el=document.getElementById(id);if(!el)return;if(!msg){el.innerHTML='';return;}const ico={success:'<i class="ti ti-circle-check"></i>',error:'<i class="ti ti-alert-circle"></i>',warn:'<i class="ti ti-alert-triangle"></i>',info:'<i class="ti ti-info-circle"></i>'};const cls={success:'a-success',error:'a-error',warn:'a-warn',info:'a-info'};el.innerHTML=`<div class="alert ${cls[type]||'a-info'}"><span class="aico">${ico[type]||ico.info}</span><div>${msg}</div></div>`;}
-function showLoading(text){document.getElementById('loadingText').textContent=text||'กำลังดำเนินการ...';document.getElementById('loadingOverlay').style.display='flex';}
+function showAdminPage(name,btnEl){
+  document.querySelectorAll('.apage').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.htab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('apage-'+name).classList.add('active');
+  if(btnEl instanceof Element)btnEl.classList.add('active');
+  if(name==='dashboard')loadDashboard();
+  if(name==='employees')loadEmployees().then(renderEmployeeTable);
+  if(name==='settings'){loadCheckpoints().then(renderCpSettings);syncSettingsUI();}
+  if(name==='qr')refreshQRPage();
+}
+function showAlert(id,msg,type){
+  const el=document.getElementById(id);if(!el)return;
+  if(!msg){el.innerHTML='';return;}
+  const ico={success:'<i class="ti ti-circle-check"></i>',error:'<i class="ti ti-alert-circle"></i>',warn:'<i class="ti ti-alert-triangle"></i>',info:'<i class="ti ti-info-circle"></i>'};
+  const cls={success:'a-success',error:'a-error',warn:'a-warn',info:'a-info'};
+  el.innerHTML=`<div class="alert ${cls[type]||'a-info'}"><span class="aico">${ico[type]||ico.info}</span><div>${msg}</div></div>`;
+}
+function showLoading(t){document.getElementById('loadingText').textContent=t||'กำลังดำเนินการ...';document.getElementById('loadingOverlay').style.display='flex';}
 function hideLoading(){document.getElementById('loadingOverlay').style.display='none';}
 function sanitize(s){return String(s||'').trim().replace(/[<>"'`]/g,'');}
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -655,16 +594,16 @@ async function apiFetch(method,body,getType){
   const opts={method};
   if(method==='POST'&&body){opts.body=JSON.stringify(body);opts.headers={'Content-Type':'text/plain'};}
   const res=await fetch(url,opts);
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  if(!res.ok)throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
 // ============================================================
-// LOGIN
+// LOGIN / LOGOUT
 // ============================================================
 async function doLogin(){
   const empId=sanitize(document.getElementById('loginEmpId').value);
-  const pin  =sanitize(document.getElementById('loginPin').value);
+  const pin=sanitize(document.getElementById('loginPin').value);
   if(!empId||!pin){showAlert('loginAlert','กรุณากรอกข้อมูลให้ครบ','warn');return;}
   setBtn('btnLogin',true,'<i class="ti ti-loader-2 pulsing"></i> กำลังตรวจสอบ...');
   showLoading('กำลังตรวจสอบข้อมูล...');
@@ -681,7 +620,7 @@ async function doLogin(){
 function doLogout(){
   stopScanner();stopGPSWatch();clearAllTimers();
   currentUser=null;selectedCp=null;allCps=[];qrToken=null;gpsReady=false;
-  userLat=null;userLng=null;userAcc=null;cameraAvailable=null;
+  userLat=null;userLng=null;userAcc=null;cameraAvailable=null;adminQRTokens=[];
   document.getElementById('mainHeader').style.display='none';
   document.getElementById('headerRight').innerHTML='';
   document.getElementById('loginEmpId').value='';
@@ -705,7 +644,13 @@ function setupAdminHeader(){
   document.getElementById('headerLogo').innerHTML='<i class="ti ti-shield-lock"></i>';
   document.getElementById('headerTitle').textContent='Admin Panel';
   document.getElementById('headerSub').textContent=`Admin: ${currentUser.name}`;
-  document.getElementById('headerRight').innerHTML=`<div class="h-tabs"><button class="htab active" onclick="showAdminPage('qr',this)"><i class="ti ti-qrcode"></i> QR</button><button class="htab" onclick="showAdminPage('dashboard',this)"><i class="ti ti-chart-bar"></i> Dashboard</button><button class="htab" onclick="showAdminPage('settings',this)"><i class="ti ti-settings"></i> ตั้งค่า</button><button class="htab" onclick="showAdminPage('employees',this)"><i class="ti ti-users"></i> พนักงาน</button><button class="htab htab-danger" onclick="doLogout()"><i class="ti ti-logout"></i></button></div>`;
+  document.getElementById('headerRight').innerHTML=`<div class="h-tabs">
+    <button class="htab active" onclick="showAdminPage('qr',this)"><i class="ti ti-qrcode"></i> QR</button>
+    <button class="htab" onclick="showAdminPage('dashboard',this)"><i class="ti ti-chart-bar"></i> Dashboard</button>
+    <button class="htab" onclick="showAdminPage('settings',this)"><i class="ti ti-settings"></i> ตั้งค่า</button>
+    <button class="htab" onclick="showAdminPage('employees',this)"><i class="ti ti-users"></i> พนักงาน</button>
+    <button class="htab htab-danger" onclick="doLogout()"><i class="ti ti-logout"></i></button>
+  </div>`;
 }
 
 // ============================================================
@@ -715,108 +660,89 @@ async function initEmployee(){
   document.getElementById('empNameDisplay').textContent=currentUser.name;
   document.getElementById('empMetaDisplay').textContent=[currentUser.branch,currentUser.position].filter(Boolean).join(' · ');
   const [cpRes,setRes]=await Promise.all([apiFetch('GET',null,'checkpoints'),apiFetch('GET',null,'settings')]);
-  if(cpRes.ok) allCps=cpRes.checkpoints||[];
-  if(setRes.ok) applyEmpSettings(setRes.settings);
+  if(cpRes.ok)allCps=cpRes.checkpoints||[];
+  if(setRes.ok)applyEmpSettings(setRes.settings);
   renderCheckpoints();
   showEmpStep('estep-checkpoint');
 }
 
 function applyEmpSettings(s){
   const t=v=>v===true||v==='true'||v==='TRUE';
-  sysSettings.LocationEnabled  =t(s.LocationEnabled);
+  sysSettings.LocationEnabled=t(s.LocationEnabled);
   sysSettings.RadiusLockEnabled=t(s.RadiusLockEnabled);
-  sysSettings.QREnabled        =s.QREnabled!==undefined?t(s.QREnabled):true;
+  sysSettings.QREnabled=s.QREnabled!==undefined?t(s.QREnabled):true;
 }
 
 function renderCheckpoints(){
   const list=document.getElementById('cpList');
   const cps=allCps.filter(c=>c.active||c.isActive);
   if(!cps.length){list.innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px">ไม่มีจุดลงทะเบียนที่เปิดใช้งาน กรุณาติดต่อ Admin</div>';showAlert('cpAlert','ไม่พบ Checkpoint ที่เปิดใช้งาน','warn');return;}
-  list.innerHTML=cps.map(cp=>`<div class="cp-item" id="cp-${cp.id}" onclick="selectCp('${cp.id}')"><div class="cp-ico"><i class="ti ti-map-pin"></i></div><div style="flex:1;min-width:0"><div class="cp-name">${escHtml(cp.name)}</div><div class="cp-meta">${escHtml(cp.id)} · รัศมี ${cp.maxRadius||500} ม.</div></div></div>`).join('');
+  list.innerHTML=cps.map(cp=>`<div class="cp-item" id="cp-${cp.id}" onclick="selectCp('${cp.id}')">
+    <div class="cp-ico"><i class="ti ti-map-pin"></i></div>
+    <div style="flex:1;min-width:0"><div class="cp-name">${escHtml(cp.name)}</div><div class="cp-meta">${escHtml(cp.id)} · รัศมี ${cp.maxRadius||500} ม.</div></div>
+  </div>`).join('');
 }
 
 function selectCp(id){
   document.querySelectorAll('.cp-item').forEach(el=>el.classList.remove('sel'));
-  const el=document.getElementById('cp-'+id);
-  if(el) el.classList.add('sel');
+  const el=document.getElementById('cp-'+id);if(el)el.classList.add('sel');
   selectedCp=allCps.find(c=>c.id===id)||null;
   document.getElementById('btnSelectCp').disabled=!selectedCp;
 }
 
 function doSelectCheckpoint(){
-  if(!selectedCp) return;
+  if(!selectedCp)return;
   stopGPSWatch();
   gpsReady=false;userLat=null;userLng=null;userAcc=null;qrToken=null;
   resetGPSUI();setConfirmBtn(false);showAlert('qrAlert','','');
-
-  const needQR=sysSettings.QREnabled, needGPS=sysSettings.LocationEnabled;
+  const needQR=sysSettings.QREnabled,needGPS=sysSettings.LocationEnabled;
   document.getElementById('qrStepTitle').innerHTML=needQR?'<i class="ti ti-qrcode"></i> สแกน QR Code':(needGPS?'<i class="ti ti-satellite"></i> ยืนยัน GPS':'<i class="ti ti-check"></i> ยืนยัน');
   document.getElementById('qrStepSub').textContent=`จุด: ${selectedCp.name} (${selectedCp.id})`;
   document.getElementById('qrScanBlock').style.display=needQR?'':'none';
   document.getElementById('gpsBlock').style.display=needGPS?'':'none';
   if(!needQR&&!needGPS){qrToken='BYPASS';gpsReady=true;setConfirmBtn(true);}
-
   showEmpStep('estep-qr');
-
- if(needQR){
+  if(needQR){
     const inIframe=window.self!==window.top;
-    if(isWebView()||inIframe){
-      document.getElementById('tabCamera').style.display='none';
-      switchScanTab('photo');
-    } else {
-      document.getElementById('tabCamera').style.display='';
-      switchScanTab('camera');
-      setTimeout(()=>startScanner(),300);
-    }
+    if(isWebView()||inIframe){document.getElementById('tabCamera').style.display='none';switchScanTab('photo');}
+    else{document.getElementById('tabCamera').style.display='';switchScanTab('camera');setTimeout(()=>startScanner(),300);}
   }
 }
 
 function goBackToCheckpoint(){stopScanner();stopGPSWatch();resetQRState();gpsReady=false;showEmpStep('estep-checkpoint');}
 
 // ============================================================
-// SCAN TABS — 3 tabs: camera | photo | manual
+// SCAN TABS
 // ============================================================
 function switchScanTab(tab){
   currentTab=tab;
-  document.getElementById('tabCamera').classList.toggle('active',tab==='camera');
-  document.getElementById('tabPhoto').classList.toggle('active',tab==='photo');
-  document.getElementById('tabManual').classList.toggle('active',tab==='manual');
-  document.getElementById('cameraPanel').style.display  = tab==='camera' ? '' : 'none';
-  document.getElementById('photoPanel').style.display   = tab==='photo'  ? '' : 'none';
-  document.getElementById('manualPanel').style.display  = tab==='manual' ? '' : 'none';
-
-  if(tab==='camera'){
-    startScanner();
-  } else {
-    stopScanner();
-    if(tab==='manual') setTimeout(()=>document.getElementById('manualToken')?.focus(),150);
-  }
+  ['camera','photo','manual'].forEach(t=>{
+    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active',t===tab);
+    document.getElementById(t+'Panel').style.display=t===tab?'':'none';
+  });
+  if(tab==='camera')startScanner();
+  else{stopScanner();if(tab==='manual')setTimeout(()=>document.getElementById('manualToken')?.focus(),150);}
 }
 
 // ============================================================
 // LIVE CAMERA SCANNER
 // ============================================================
-async function startScanner(){  
-  if(scannerRunning) return;
-  const video=document.getElementById('qrVideo'), status=document.getElementById('scannerStatus');
+async function startScanner(){
+  if(scannerRunning)return;
+  const video=document.getElementById('qrVideo'),status=document.getElementById('scannerStatus');
   document.getElementById('qrTokenStrip').style.display='none';
   document.getElementById('qrScannerBox').style.display='block';
-  if(status) status.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px;flex-shrink:0"></div> กำลังเปิดกล้อง...';
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-    onCameraFailed('เบราว์เซอร์ไม่รองรับกล้องสด');return;
-  }
-  const constraintSets=[{video:{facingMode:{ideal:'environment'}}},{video:{facingMode:'environment'}},{video:true}];
+  if(status)status.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px;flex-shrink:0"></div> กำลังเปิดกล้อง...';
+  if(!navigator.mediaDevices?.getUserMedia){onCameraFailed('เบราว์เซอร์ไม่รองรับกล้องสด');return;}
   let stream=null,lastErr=null;
-  for(const c of constraintSets){
+  for(const c of [{video:{facingMode:{ideal:'environment'}}},{video:{facingMode:'environment'}},{video:true}]){
     try{stream=await navigator.mediaDevices.getUserMedia(c);break;}
     catch(err){lastErr=err;if(err.name==='NotAllowedError'||err.name==='PermissionDeniedError')break;}
   }
   if(!stream){
     cameraAvailable=false;
-    let msg='ไม่สามารถเปิดกล้องสดได้';
-    if(lastErr?.name==='NotAllowedError'||lastErr?.name==='PermissionDeniedError')
-      msg='ถูกปฏิเสธการเข้าถึงกล้อง — กรุณาอนุญาตใน Settings แล้วรีเฟรช';
-    onCameraFailed(msg);return;
+    onCameraFailed(lastErr?.name==='NotAllowedError'?'ถูกปฏิเสธการเข้าถึงกล้อง — กรุณาอนุญาตใน Settings':'ไม่สามารถเปิดกล้องสดได้');
+    return;
   }
   cameraAvailable=true;scannerStream=stream;video.srcObject=stream;
   try{
@@ -824,19 +750,14 @@ async function startScanner(){
     await video.play();
   }catch(e){stopScanner();onCameraFailed('เปิดกล้องไม่สำเร็จ กรุณาใช้แท็บ "ถ่ายภาพ"');return;}
   scannerRunning=true;
-  if(status) status.innerHTML='<i class="ti ti-scan" style="color:var(--teal)"></i> กำลังสแกน — จ่อ QR Code ในกรอบ';
+  if(status)status.innerHTML='<i class="ti ti-scan" style="color:var(--teal)"></i> กำลังสแกน — จ่อ QR Code ในกรอบ';
   scanFrame();
 }
 
-function onCameraFailed(msg){
-  stopScanner();cameraAvailable=false;
-  // switch to photo tab gracefully (no alert spam)
-  switchScanTab('photo');
-  showAlert('qrAlert',msg+' — กรุณาใช้แท็บ <strong>ถ่ายภาพ</strong> หรือ <strong>Token</strong>','warn');
-}
+function onCameraFailed(msg){stopScanner();cameraAvailable=false;switchScanTab('photo');showAlert('qrAlert',msg+' — กรุณาใช้แท็บ <strong>ถ่ายภาพ</strong> หรือ <strong>Token</strong>','warn');}
 
 function scanFrame(){
-  if(!scannerRunning) return;
+  if(!scannerRunning)return;
   const video=document.getElementById('qrVideo'),canvas=document.getElementById('qrCanvas');
   if(!video||!canvas||video.readyState<2){scannerAnimFrame=requestAnimationFrame(scanFrame);return;}
   const w=video.videoWidth,h=video.videoHeight;
@@ -844,9 +765,8 @@ function scanFrame(){
   canvas.width=w;canvas.height=h;
   const ctx=canvas.getContext('2d',{willReadFrequently:true});
   ctx.drawImage(video,0,0,w,h);
-  const imgData=ctx.getImageData(0,0,w,h);
-  const code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'dontInvert'});
-  if(code&&code.data){stopScanner();applyQRToken(code.data.trim());return;}
+  const code=jsQR(ctx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'});
+  if(code?.data){stopScanner();applyQRToken(code.data.trim());return;}
   scannerAnimFrame=requestAnimationFrame(scanFrame);
 }
 
@@ -854,155 +774,79 @@ function stopScanner(){
   scannerRunning=false;
   if(scannerAnimFrame){cancelAnimationFrame(scannerAnimFrame);scannerAnimFrame=null;}
   if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}
-  const video=document.getElementById('qrVideo');
-  if(video) video.srcObject=null;
+  const video=document.getElementById('qrVideo');if(video)video.srcObject=null;
 }
 
 // ============================================================
-// PHOTO CAPTURE (LINE WebView friendly)
-// Uses <input type="file" capture="environment"> + jsQR
-// Works in LINE, FB, Instagram, and all browsers
+// PHOTO CAPTURE
 // ============================================================
 function onPhotoSelected(event){
-  const file=event.target.files&&event.target.files[0];
-  if(!file) return;
-  const statusEl=document.getElementById('photoDecodeStatus');
-  const preview=document.getElementById('photoPreview');
+  const file=event.target.files?.[0];if(!file)return;
+  const statusEl=document.getElementById('photoDecodeStatus'),preview=document.getElementById('photoPreview');
   statusEl.innerHTML='<div style="display:flex;align-items:center;justify-content:center;gap:8px;color:var(--text2);font-size:13px;padding:8px"><div class="spinner" style="width:16px;height:16px;border-width:2px"></div>กำลังอ่าน QR Code...</div>';
   const reader=new FileReader();
   reader.onload=function(e){
     const img=new Image();
-    img.onerror=function(){
-      statusEl.innerHTML='<div class="alert a-error"><span class="aico"><i class="ti ti-alert-circle"></i></span><div>โหลดรูปไม่ได้</div></div>';
-      event.target.value='';
-    };
+    img.onerror=()=>{statusEl.innerHTML='<div class="alert a-error"><span class="aico"><i class="ti ti-alert-circle"></i></span><div>โหลดรูปไม่ได้</div></div>';event.target.value='';};
     img.onload=async function(){
-      preview.src=e.target.result;
-      preview.style.display='block';
+      preview.src=e.target.result;preview.style.display='block';
       try{
-        const attempts=buildAttempts(img);
         let code=null;
-        for(const {data,w,h} of attempts){
-          if(code) break;
-          try{code=jsQR(data,w,h,{inversionAttempts:'dontInvert'});}catch(_){}
-          if(!code){try{code=jsQR(data,w,h,{inversionAttempts:'onlyInvert'});}catch(_){}}
-          if(!code){try{code=jsQR(data,w,h,{inversionAttempts:'attemptBoth'});}catch(_){}}
+        for(const {data,w,h} of buildAttempts(img)){
+          if(code)break;
+          for(const inv of['dontInvert','onlyInvert','attemptBoth']){
+            try{code=jsQR(data,w,h,{inversionAttempts:inv});}catch(_){}
+            if(code)break;
+          }
         }
-        if(code&&code.data){statusEl.innerHTML='';applyQRToken(code.data.trim());return;}
-        // ZXing fallback
+        if(code?.data){statusEl.innerHTML='';applyQRToken(code.data.trim());return;}
         if(window.ZXing){
           try{
-            const hints=new Map();
-            hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
-            const qrReader=new ZXing.BrowserQRCodeReader(hints);
-            const result=await qrReader.decodeFromImageElement(img);
-            if(result&&result.text){statusEl.innerHTML='';applyQRToken(result.text.trim());return;}
-          }catch(err){console.log('ZXing:',err);}
+            const hints=new Map();hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
+            const result=await new ZXing.BrowserQRCodeReader(hints).decodeFromImageElement(img);
+            if(result?.text){statusEl.innerHTML='';applyQRToken(result.text.trim());return;}
+          }catch(err){}
         }
         statusEl.innerHTML='<div class="alert a-error"><span class="aico"><i class="ti ti-alert-circle"></i></span><div>อ่าน QR ไม่สำเร็จ — ลองใช้แท็บ <strong>Token</strong> แทนได้เลยครับ</div></div>';
         event.target.value='';
-      }catch(err){
-        console.error(err);
-        statusEl.innerHTML='<div class="alert a-error"><span class="aico"><i class="ti ti-alert-circle"></i></span><div>Error: '+err.message+'</div></div>';
-        event.target.value='';
-      }
+      }catch(err){statusEl.innerHTML='<div class="alert a-error"><span class="aico"><i class="ti ti-alert-circle"></i></span><div>Error: '+err.message+'</div></div>';event.target.value='';}
     };
-    img.decoding='async';
-    img.src=e.target.result;
+    img.decoding='async';img.src=e.target.result;
   };
-  reader.onerror=function(){
-    statusEl.innerHTML='<div class="alert a-error"><span class="aico"><i class="ti ti-alert-circle"></i></span><div>อ่านไฟล์ไม่ได้</div></div>';
-    event.target.value='';
-  };
+  reader.onerror=()=>{statusEl.innerHTML='<div class="alert a-error"><span class="aico"><i class="ti ti-alert-circle"></i></span><div>อ่านไฟล์ไม่ได้</div></div>';event.target.value='';};
   reader.readAsDataURL(file);
 }
 
 function buildAttempts(img){
   const results=[];
-  const sizes=[2048,1536,1024,768,512];
-  for(const maxDim of sizes){
+  for(const maxDim of[2048,1536,1024,768,512]){
     const scale=Math.min(1,maxDim/Math.max(img.width||1,img.height||1));
-    const w=Math.round((img.width||1)*scale);
-    const h=Math.round((img.height||1)*scale);
-    if(w<20||h<20) continue;
-    const canvas=document.createElement('canvas');
-    canvas.width=w;canvas.height=h;
+    const w=Math.round((img.width||1)*scale),h=Math.round((img.height||1)*scale);
+    if(w<20||h<20)continue;
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
     const ctx=canvas.getContext('2d',{willReadFrequently:true});
     ctx.drawImage(img,0,0,w,h);
-    results.push({data:new Uint8ClampedArray(ctx.getImageData(0,0,w,h).data),w,h});
-    results.push({data:toHighContrast(ctx,w,h),w,h});
-    results.push({data:toStretchedContrast(ctx,w,h),w,h});
-    results.push({data:toSharpen(ctx,w,h),w,h});
-    try{
-      const cropW=Math.floor(w*0.8),cropH=Math.floor(h*0.8);
-      const cropX=Math.floor((w-cropW)/2),cropY=Math.floor((h-cropH)/2);
-      const crop=ctx.getImageData(cropX,cropY,cropW,cropH);
-      results.push({data:new Uint8ClampedArray(crop.data),w:cropW,h:cropH});
-    }catch(_){}
+    const px=ctx.getImageData(0,0,w,h).data;
+    results.push({data:new Uint8ClampedArray(px),w,h});
+    // high contrast
+    const hc=new Uint8ClampedArray(px.length);
+    for(let i=0;i<px.length;i+=4){const v=px[i]*.299+px[i+1]*.587+px[i+2]*.114<128?0:255;hc[i]=hc[i+1]=hc[i+2]=v;hc[i+3]=255;}
+    results.push({data:hc,w,h});
   }
   return results;
 }
 
-function toHighContrast(ctx,w,h){
-  const px=ctx.getImageData(0,0,w,h).data;
-  const out=new Uint8ClampedArray(px.length);
-  for(let i=0;i<px.length;i+=4){
-    const v=px[i]*0.299+px[i+1]*0.587+px[i+2]*0.114<128?0:255;
-    out[i]=out[i+1]=out[i+2]=v;out[i+3]=255;
-  }
-  return out;
-}
-
-function toStretchedContrast(ctx,w,h){
-  const px=ctx.getImageData(0,0,w,h).data;
-  let mn=255,mx=0;
-  for(let i=0;i<px.length;i+=4){
-    const g=px[i]*0.299+px[i+1]*0.587+px[i+2]*0.114;
-    if(g<mn)mn=g;if(g>mx)mx=g;
-  }
-  const range=mx-mn||1;
-  const out=new Uint8ClampedArray(px.length);
-  for(let i=0;i<px.length;i+=4){
-    const g=px[i]*0.299+px[i+1]*0.587+px[i+2]*0.114;
-    const t=Math.round(((g-mn)/range)*255)<128?0:255;
-    out[i]=out[i+1]=out[i+2]=t;out[i+3]=255;
-  }
-  return out;
-}
-
-function toSharpen(ctx,w,h){
-  const px=ctx.getImageData(0,0,w,h).data;
-  const out=new Uint8ClampedArray(px.length);
-  for(let y=0;y<h;y++){
-    for(let x=0;x<w;x++){
-      const i=(y*w+x)*4;
-      for(let c=0;c<3;c++){
-        const get=(dx,dy)=>{
-          const nx=Math.max(0,Math.min(w-1,x+dx));
-          const ny=Math.max(0,Math.min(h-1,y+dy));
-          return px[(ny*w+nx)*4+c];
-        };
-        out[i+c]=Math.max(0,Math.min(255,5*get(0,0)-get(-1,0)-get(1,0)-get(0,-1)-get(0,1)));
-      }
-      out[i+3]=255;
-    }
-  }
-  return out;
-}
 // ============================================================
 // TOKEN APPLICATION
 // ============================================================
 function applyQRToken(token){
-  if(!token) return;
+  if(!token)return;
   const parts=token.split('-');
-  if(parts.length<3){showAlert('qrAlert','QR Token รูปแบบไม่ถูกต้อง','error');return;}
+  if(parts.length<2){showAlert('qrAlert','QR Token รูปแบบไม่ถูกต้อง','error');return;}
   if(selectedCp&&parts[0]!==selectedCp.id){showAlert('qrAlert',`QR นี้เป็นของ ${parts[0]} ไม่ใช่ ${selectedCp.id}`,'error');return;}
   qrToken=token;
-  // Hide scan UI, show token strip
   document.getElementById('scanTabs').style.display='none';
-  document.getElementById('cameraPanel').style.display='none';
-  document.getElementById('photoPanel').style.display='none';
-  document.getElementById('manualPanel').style.display='none';
+  ['cameraPanel','photoPanel','manualPanel'].forEach(id=>document.getElementById(id).style.display='none');
   document.getElementById('qrTokenStrip').style.display='flex';
   document.getElementById('qrTokenVal').textContent=token;
   showAlert('qrAlert','ยืนยัน QR Token สำเร็จ ✓'+(sysSettings.LocationEnabled?' — กรุณาขอ GPS Location':' — กดยืนยันได้เลย'),'success');
@@ -1023,25 +867,19 @@ function resetScan(){
   const pp=document.getElementById('photoPreview');if(pp)pp.style.display='none';
   const ph=document.getElementById('photoFileInput');if(ph)ph.value='';
   const ds=document.getElementById('photoDecodeStatus');if(ds)ds.innerHTML='';
-  showAlert('qrAlert','','');
-  checkReadyToSubmit();
-  // Decide which tab to restore
-  if(isWebView()||window.self!==window.top) switchScanTab('photo');
-  else switchScanTab('camera');
+  showAlert('qrAlert','','');checkReadyToSubmit();
+  if(isWebView()||window.self!==window.top)switchScanTab('photo');else switchScanTab('camera');
 }
 
 function resetQRState(){
   stopScanner();qrToken=null;
-  const tokenStrip=document.getElementById('qrTokenStrip');if(tokenStrip)tokenStrip.style.display='none';
+  const ts=document.getElementById('qrTokenStrip');if(ts)ts.style.display='none';
   const tabs=document.getElementById('scanTabs');if(tabs)tabs.style.display='';
   const pp=document.getElementById('photoPreview');if(pp)pp.style.display='none';
   const ph=document.getElementById('photoFileInput');if(ph)ph.value='';
   const ds=document.getElementById('photoDecodeStatus');if(ds)ds.innerHTML='';
 }
 
-// ============================================================
-// WEBVIEW DETECTION (informational only — does NOT block camera)
-// ============================================================
 function isWebView(){
   const ua=navigator.userAgent||'';
   return /FBAN|FBAV|FB_IAB|Line\/|Instagram|Twitter|MicroMessenger/.test(ua)||
@@ -1055,12 +893,10 @@ async function requestGPS(){
   if(!navigator.geolocation){onGPSError('เบราว์เซอร์ไม่รองรับ GPS');return;}
   const btn=document.getElementById('btnGps');
   btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2 pulsing"></i> กำลังหาพิกัด...';
-  stopGPSWatch();
-  let settled=false;
+  stopGPSWatch();let settled=false;
   gpsWatchId=navigator.geolocation.watchPosition(
     pos=>{
-      if(settled)return;
-      if(pos.coords.accuracy>200)return;
+      if(settled)return;if(pos.coords.accuracy>200)return;
       settled=true;stopGPSWatch();
       onGPSSuccess(pos.coords.latitude,pos.coords.longitude,pos.coords.accuracy);
       btn.disabled=false;btn.innerHTML='<i class="ti ti-antenna"></i> ขอ GPS อีกครั้ง';
@@ -1087,7 +923,7 @@ function onGPSSuccess(lat,lng,acc){
   const maxR=selectedCp.maxRadius||500,inZone=dist<=maxR;
   const badge=document.getElementById('gpsBadge');
   badge.className=`badge ${inZone?'b-teal':'b-red'}`;
-  badge.textContent=inZone?`✓ ได้รับพิกัด`:`ไกลเกิน ${Math.round(dist)} ม.`;
+  badge.textContent=inZone?'✓ ได้รับพิกัด':`ไกลเกิน ${Math.round(dist)} ม.`;
   document.getElementById('gpsDetail').style.display='block';
   document.getElementById('gpsLat').textContent=lat.toFixed(6);
   document.getElementById('gpsLng').textContent=lng.toFixed(6);
@@ -1096,7 +932,7 @@ function onGPSSuccess(lat,lng,acc){
   if(sysSettings.LocationEnabled&&sysSettings.RadiusLockEnabled&&!inZone){
     showAlert('qrAlert',`คุณอยู่ห่าง ${Math.round(dist)} ม. จากจุดลงทะเบียน (สูงสุด ${maxR} ม.)`,'error');
     gpsReady=false;
-  } else {
+  }else{
     gpsReady=true;
     showAlert('qrAlert','GPS พร้อม ✓'+(sysSettings.QREnabled&&!qrToken?' — กรุณายืนยัน QR Token ด้วย':' — กดยืนยันเพื่อลงทะเบียน'),sysSettings.QREnabled&&!qrToken?'info':'success');
   }
@@ -1139,45 +975,181 @@ function resetEmpFlow(){
 }
 
 // ============================================================
-// ADMIN FLOW
+// ADMIN INIT
 // ============================================================
 async function initAdmin(){
-  await Promise.all([loadCheckpoints(),loadEmployees(),loadSettings()]);
-  syncSettingsUI();generateAllQR();loadDashboard();renderEmployeeTable();renderCpSettings();
+  await Promise.all([loadCheckpoints(),loadEmployees(),loadSettings(),loadQRTokens()]);
+  syncSettingsUI();renderQRGrid();loadDashboard();renderEmployeeTable();renderCpSettings();
 }
 
 async function loadCheckpoints(){
-  try{const d=await apiFetch('GET',null,'checkpoints');if(d.ok)adminCheckpoints=d.checkpoints;}
-  catch(e){adminCheckpoints=[{id:'CP001',name:'ประตูหลัก',lat:13.7563,lng:100.5018,maxRadius:500,active:true}];}
+  try{const d=await apiFetch('GET',null,'checkpoints');if(d.ok)adminCheckpoints=d.checkpoints||[];}
+  catch(e){adminCheckpoints=[];}
 }
 async function loadEmployees(){
-  try{const d=await apiFetch('GET',null,'employees');if(d.ok)adminEmployees=d.employees;}catch(e){adminEmployees=[];}
+  try{const d=await apiFetch('GET',null,'employees');if(d.ok)adminEmployees=d.employees||[];}catch(e){adminEmployees=[];}
 }
 async function loadSettings(){
   try{
     const d=await apiFetch('GET',null,'settings');
     if(d.ok){
       const s=d.settings,t=v=>v===true||v==='true'||v==='TRUE';
-      featureFlags.qrEnabled      =s.QREnabled!==undefined?t(s.QREnabled):true;
+      featureFlags.qrEnabled=s.QREnabled!==undefined?t(s.QREnabled):true;
       featureFlags.locationEnabled=t(s.LocationEnabled);
-      featureFlags.radiusEnabled  =t(s.RadiusLockEnabled);
-      featureFlags.rotationMinutes=s.QRRotationMinutes!=null&&s.QRRotationMinutes!==''?parseInt(s.QRRotationMinutes):60;
-      document.getElementById('togQR').checked      =featureFlags.qrEnabled;
+      featureFlags.radiusEnabled=t(s.RadiusLockEnabled);
+      document.getElementById('togQR').checked=featureFlags.qrEnabled;
       document.getElementById('togLocation').checked=featureFlags.locationEnabled;
-      document.getElementById('togRadius').checked  =featureFlags.radiusEnabled;
-      const rv=String(featureFlags.rotationMinutes);
-      ['rotationMinutes','rotationMinutesSetting'].forEach(id=>{const el=document.getElementById(id);if(el){const o=el.querySelector(`option[value="${rv}"]`);if(o)el.value=rv;}});
-      updateRotationLabel();
+      document.getElementById('togRadius').checked=featureFlags.radiusEnabled;
     }
   }catch(e){}
 }
+async function loadQRTokens(){
+  try{const d=await apiFetch('GET',null,'qrtokens');if(d.ok)adminQRTokens=d.tokens||[];}
+  catch(e){adminQRTokens=[];}
+}
 
+// ============================================================
+// QR PAGE — Sheet-based
+// ============================================================
+
+// preset วันหมดอายุ
+function setExpiryPreset(days){
+  const el=document.getElementById('qrExpiryInput');if(!el)return;
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active-preset'));
+  event.target.classList.add('active-preset');
+  if(days===0){el.value='';return;}
+  const d=new Date(Date.now()+days*86400000);
+  // format: YYYY-MM-DDTHH:mm
+  el.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+function getExpiryFromUI(){
+  const el=document.getElementById('qrExpiryInput');
+  return el?el.value:'';
+}
+
+// สร้าง QR ใหม่ทั้งหมด → บันทึกลง Sheet
+async function generateAllQR(){
+  const expiry=getExpiryFromUI();
+  showLoading('กำลังสร้าง QR Code...');
+  try{
+    const d=await apiFetch('POST',{action:'generateQR',expiresAt:expiry,revokeOld:true});
+    if(!d.ok)throw new Error(d.msg);
+    await loadQRTokens();
+    renderQRGrid();
+    showAlert('qrAdminAlert',`สร้าง QR ใหม่ทั้งหมด ${d.created?.length||0} จุด สำเร็จ`,'success');
+    setTimeout(()=>showAlert('qrAdminAlert','',''),4000);
+  }catch(e){showAlert('qrAdminAlert','สร้างไม่ได้: '+e.message,'error');}
+  finally{hideLoading();}
+}
+
+// สร้าง QR เฉพาะ CP เดียว
+async function regenerateOne(cpId){
+  const expiry=getExpiryFromUI();
+  showLoading('กำลังสร้าง QR...');
+  try{
+    const d=await apiFetch('POST',{action:'generateQR',cpId,expiresAt:expiry,revokeOld:true});
+    if(!d.ok)throw new Error(d.msg);
+    await loadQRTokens();
+    renderQRGrid();
+    showAlert('qrAdminAlert','สร้าง QR ใหม่สำเร็จ','success');
+    setTimeout(()=>showAlert('qrAdminAlert','',''),3000);
+  }catch(e){showAlert('qrAdminAlert','สร้างไม่ได้: '+e.message,'error');}
+  finally{hideLoading();}
+}
+
+// โหลด QR ล่าสุดจาก Sheet แล้ว render
+async function refreshQRPage(){
+  await loadQRTokens();
+  renderQRGrid();
+}
+
+// render QR grid จาก adminQRTokens
+function renderQRGrid(){
+  clearAllTimers();
+  const grid=document.getElementById('qrGrid');if(!grid)return;
+  if(!adminQRTokens.length){
+    grid.innerHTML=`<div style="color:var(--text3);font-size:13px;padding:20px;text-align:center;grid-column:1/-1">
+      <i class="ti ti-qrcode-off" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>
+      ยังไม่มี QR Token — กดปุ่ม <strong>สร้างใหม่ทั้งหมด</strong> ด้านบน
+    </div>`;
+    return;
+  }
+  grid.innerHTML='';
+  adminQRTokens.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='qr-card';card.id=`qrcard-${t.cpId}`;
+    // expiry label
+    let expHtml='';
+    if(!t.expiresAt||t.expiresAt===''){
+      expHtml='<div class="qr-expires no-exp">ไม่หมดอายุ</div>';
+    }else{
+      const expDate=new Date(t.expiresAt);
+      const expired=expDate<new Date();
+      expHtml=`<div class="qr-expires ${expired?'expired':'has-exp'}" id="qrexp-${t.cpId}">
+        ${expired?'หมดอายุแล้ว':'หมดอายุ: '}<span id="qrtimer-${t.cpId}">${expired?'':t.expiresAt.replace('T',' ').substring(0,16)}</span>
+      </div>`;
+    }
+    card.innerHTML=`
+      <div class="qr-card-name">${escHtml(t.cpName)}</div>
+      <div class="qr-card-id">${escHtml(t.cpId)}</div>
+      <div class="qr-canvas-wrap" id="qrwrap-${t.cpId}"></div>
+      ${expHtml}
+      <div class="qr-token-label">${escHtml(t.token)}</div>
+      <div class="qr-actions">
+        <button class="btn btn-outline" onclick="regenerateOne('${t.cpId}')"><i class="ti ti-refresh"></i> รีเจน</button>
+        <button class="btn btn-amber" onclick="downloadQR('${t.cpId}','${escHtml(t.cpName)}')"><i class="ti ti-download"></i> บันทึก</button>
+      </div>`;
+    grid.appendChild(card);
+    // render QR image
+    const wrap=document.getElementById(`qrwrap-${t.cpId}`);
+    if(wrap){wrap.innerHTML='';new QRCode(wrap,{text:t.token,width:160,height:160,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}
+    // countdown ถ้ามีวันหมดอายุและยังไม่หมด
+    if(t.expiresAt&&t.expiresAt!==''){
+      const expDate=new Date(t.expiresAt);
+      if(expDate>new Date())startCountdown(t.cpId,expDate);
+    }
+  });
+}
+
+function startCountdown(cpId,expiryDate){
+  if(qrTimers[cpId])clearInterval(qrTimers[cpId]);
+  const tick=()=>{
+    const diff=expiryDate-Date.now();
+    const expEl=document.getElementById(`qrexp-${cpId}`);
+    if(!expEl)return;
+    if(diff<=0){
+      clearInterval(qrTimers[cpId]);
+      expEl.className='qr-expires expired';
+      expEl.innerHTML='หมดอายุแล้ว!';
+      return;
+    }
+    const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+    const timerEl=document.getElementById(`qrtimer-${cpId}`);
+    if(timerEl)timerEl.textContent=`${h>0?h+'ช. ':''}${m}:${String(s).padStart(2,'0')}`;
+  };
+  tick();qrTimers[cpId]=setInterval(tick,1000);
+}
+
+function clearAllTimers(){Object.values(qrTimers).forEach(t=>clearInterval(t));qrTimers={};}
+
+function downloadQR(cpId,cpName){
+  const wrap=document.getElementById(`qrwrap-${cpId}`);if(!wrap)return;
+  const img=wrap.querySelector('img')||wrap.querySelector('canvas');if(!img)return;
+  const a=document.createElement('a');
+  a.href=img.tagName==='IMG'?img.src:img.toDataURL();
+  a.download=`QR-${cpName.replace(/\s+/g,'_')}-${cpId}.png`;
+  a.click();
+}
+
+// ============================================================
+// SETTINGS UI
+// ============================================================
 function syncSettingsUI(){
   const qrOn=document.getElementById('togQR')?.checked??true;
   const locOn=document.getElementById('togLocation')?.checked??true;
   featureFlags.qrEnabled=qrOn;featureFlags.locationEnabled=locOn;
-  const qs=document.getElementById('qrSubOptions'),gs=document.getElementById('gpsSubOptions');
-  if(qs){qs.style.opacity=qrOn?'1':'0.35';qs.style.pointerEvents=qrOn?'':'none';}
+  const gs=document.getElementById('gpsSubOptions');
   if(gs){gs.style.opacity=locOn?'1':'0.35';gs.style.pointerEvents=locOn?'':'none';}
   if(!locOn){const r=document.getElementById('togRadius');if(r)r.checked=false;}
   const ts=document.getElementById('qrTokenSection'),to=document.getElementById('qrTokenOff');
@@ -1189,53 +1161,15 @@ function syncSettingsUI(){
   const fp=document.getElementById('flowPreview');
   if(fp){
     const step=(icon,label,active)=>`<div class="flow-step ${active?'active-step':'skip-step'}"><i class="ti ${icon}" style="font-size:12px"></i>${label}</div>`;
-    const arrow=`<span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>`;
+    const arrow='<span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>';
     fp.innerHTML=step('ti-login','เข้าสู่ระบบ',true)+arrow+step('ti-map-pin','เลือก CP',true)+arrow+step('ti-qrcode','สแกน QR',qrOn)+arrow+step('ti-satellite','GPS',locOn)+arrow+step('ti-check','ยืนยัน',true);
   }
   const td=document.getElementById('thDist');if(td)td.style.display=locOn?'':'none';
 }
 
-function simpleHash(str) {
-  let h = 5381;
-  for (let i = 0; i < str.length; i++) {
-    h = Math.imul(h, 33) ^ str.charCodeAt(i);
-  }
-  const u = ((h % 4294967296) + 4294967296) % 4294967296;
-  return u.toString(36).toUpperCase().padStart(6, '0');
-}
-
-function generateQRToken(cpId) {
-  const rotMin = parseInt(document.getElementById('rotationMinutes').value);
-  const now = Date.now();
-  const slot = rotMin > 0 ? Math.floor(now / (rotMin * 60 * 1000)) : 0;
-  const hash = simpleHash(cpId + '|' + slot + '|' + 'MYSECRET2024');
-  return cpId + '-' + slot + '-' + hash;
-}
-function getTokenExpiry(){const rotMin=parseInt(document.getElementById('rotationMinutes').value);if(rotMin===0)return null;const now=Date.now(),slotMs=rotMin*60*1000;return new Date((Math.floor(now/slotMs)+1)*slotMs);}
-
-function generateAllQR(){
-  clearAllTimers();
-  const grid=document.getElementById('qrGrid');if(!grid)return;
-  const cps=adminCheckpoints.filter(c=>c.active||c.isActive);
-  grid.innerHTML='';
-  if(!cps.length){grid.innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px">ไม่มี Checkpoint ที่เปิดใช้งาน</div>';return;}
-  cps.forEach(cp=>{
-    const card=document.createElement('div');
-    card.className='qr-card';card.id=`qrcard-${cp.id}`;
-    card.innerHTML=`<div class="qr-card-name">${escHtml(cp.name)}</div><div class="qr-card-id">${escHtml(cp.id)}</div><div class="qr-canvas-wrap" id="qrwrap-${cp.id}"></div><div class="qr-expires" id="qrexp-${cp.id}">หมดอายุใน: <span class="time" id="qrtimer-${cp.id}">—</span></div><div class="qr-actions"><button class="btn btn-outline" onclick="regenerateOne('${cp.id}')"><i class="ti ti-refresh"></i> รีเจน</button><button class="btn btn-amber" onclick="downloadQR('${cp.id}','${escHtml(cp.name)}')"><i class="ti ti-download"></i> บันทึก</button></div>`;
-    grid.appendChild(card);
-    renderSingleQR(cp);
-  });
-}
-
-function renderSingleQR(cp){const token=generateQRToken(cp.id);const wrap=document.getElementById(`qrwrap-${cp.id}`);if(!wrap)return;wrap.innerHTML='';new QRCode(wrap,{text:token,width:160,height:160,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});startCountdown(cp.id);}
-function startCountdown(cpId){if(qrTimers[cpId])clearInterval(qrTimers[cpId]);const rotMin=parseInt(document.getElementById('rotationMinutes').value);if(rotMin===0){const el=document.getElementById(`qrexp-${cpId}`);if(el)el.innerHTML='<span style="color:var(--text3)">ไม่หมดอายุ</span>';return;}const tick=()=>{const expiry=getTokenExpiry();if(!expiry)return;const diff=expiry-Date.now();if(diff<=0){const cp=adminCheckpoints.find(c=>c.id===cpId);if(cp)renderSingleQR(cp);return;}const el=document.getElementById(`qrtimer-${cpId}`);if(el)el.textContent=`${Math.floor(diff/60000)}:${String(Math.floor((diff%60000)/1000)).padStart(2,'0')}`;};tick();qrTimers[cpId]=setInterval(tick,1000);}
-function clearAllTimers(){Object.values(qrTimers).forEach(t=>clearInterval(t));qrTimers={};}
-function regenerateOne(cpId){const cp=adminCheckpoints.find(c=>c.id===cpId);if(cp)renderSingleQR(cp);showAlert('qrAdminAlert',`สร้าง QR ใหม่สำหรับ ${cp?.name||cpId} แล้ว`,'success');setTimeout(()=>showAlert('qrAdminAlert','',''),3000);}
-function regenerateAll(){generateAllQR();showAlert('qrAdminAlert','สร้าง QR ใหม่ทั้งหมดแล้ว','success');setTimeout(()=>showAlert('qrAdminAlert','',''),3000);}
-function updateRotationLabel(){const v=document.getElementById('rotationMinutes')?.value;const labels={'15':'15 นาที','30':'30 นาที','60':'1 ชั่วโมง','120':'2 ชั่วโมง','480':'8 ชั่วโมง','0':'ไม่หมดอายุ'};const lbl=document.getElementById('rotationMinLabel');if(lbl)lbl.textContent=labels[v]||v+' นาที';const ss=document.getElementById('rotationMinutesSetting');if(ss&&ss.value!==v)ss.value=v;generateAllQR();}
-function downloadQR(cpId,cpName){const wrap=document.getElementById(`qrwrap-${cpId}`);if(!wrap)return;const img=wrap.querySelector('img')||wrap.querySelector('canvas');if(!img)return;const a=document.createElement('a');a.href=img.tagName==='IMG'?img.src:img.toDataURL();a.download=`QR-${cpName.replace(/\s+/g,'_')}-${cpId}.png`;a.click();}
-
+// ============================================================
+// DASHBOARD
+// ============================================================
 async function loadDashboard(){
   showAlert('dashAlert','','');
   try{
@@ -1247,10 +1181,15 @@ async function loadDashboard(){
     document.getElementById('statCp').textContent=d.activeCp??'—';
     document.getElementById('statEmp').textContent=d.activeEmp??'—';
     const tbody=document.getElementById('recentTable'),recent=d.recent||[],locOn=featureFlags.locationEnabled;
-    tbody.innerHTML=recent.length?recent.map(r=>`<tr><td class="name">${r.empName||'—'}</td><td>${r.cpName||'—'}</td><td>${r.ts?r.ts.substring(11,16):'—'}</td>${locOn?`<td><span style="color:var(--teal)">${r.distanceM??'—'}</span></td>`:''}</tr>`).join(''):`<tr><td colspan="${locOn?4:3}" style="text-align:center;color:var(--text3);padding:20px">ยังไม่มีข้อมูล</td></tr>`;
+    tbody.innerHTML=recent.length
+      ?recent.map(r=>`<tr><td class="name">${r.empName||'—'}</td><td>${r.cpName||'—'}</td><td>${r.ts||'—'}</td>${locOn?`<td><span style="color:var(--teal)">${r.distanceM??'—'}</span></td>`:''}</tr>`).join('')
+      :`<tr><td colspan="${locOn?4:3}" style="text-align:center;color:var(--text3);padding:20px">ยังไม่มีข้อมูล</td></tr>`;
   }catch(e){showAlert('dashAlert','โหลดข้อมูลไม่ได้: '+e.message,'error');}
 }
 
+// ============================================================
+// CP SETTINGS
+// ============================================================
 function renderCpSettings(){
   const list=document.getElementById('cpSettingsList');if(!list)return;
   list.innerHTML=adminCheckpoints.map(cp=>`
@@ -1280,28 +1219,43 @@ function addCheckpointRow(){const newId='CP'+String(adminCheckpoints.length+1).p
 
 async function saveSettings(){
   adminCheckpoints.forEach(cp=>{
-    const n=document.getElementById('cpname-'+cp.id),la=document.getElementById('cplat-'+cp.id),lo=document.getElementById('cplng-'+cp.id),r=document.getElementById('cprad-'+cp.id);
-    if(n)cp.name=n.value;if(la)cp.lat=parseFloat(la.value)||cp.lat;if(lo)cp.lng=parseFloat(lo.value)||cp.lng;if(r)cp.maxRadius=parseInt(r.value)||cp.maxRadius;
+    const n=document.getElementById('cpname-'+cp.id),la=document.getElementById('cplat-'+cp.id);
+    const lo=document.getElementById('cplng-'+cp.id),r=document.getElementById('cprad-'+cp.id);
+    if(n)cp.name=n.value;if(la)cp.lat=parseFloat(la.value)||cp.lat;
+    if(lo)cp.lng=parseFloat(lo.value)||cp.lng;if(r)cp.maxRadius=parseInt(r.value)||cp.maxRadius;
   });
-  const rotMin=document.getElementById('rotationMinutesSetting').value;
-  const qrS=document.getElementById('rotationMinutes');if(qrS&&qrS.value!==rotMin)qrS.value=rotMin;
-  const settings={QREnabled:document.getElementById('togQR').checked,LocationEnabled:document.getElementById('togLocation').checked,RadiusLockEnabled:document.getElementById('togRadius').checked,QRRotationMinutes:rotMin};
-  featureFlags.qrEnabled=settings.QREnabled;featureFlags.locationEnabled=settings.LocationEnabled;featureFlags.radiusEnabled=settings.RadiusLockEnabled;featureFlags.rotationMinutes=parseInt(rotMin);
+  const settings={
+    QREnabled:document.getElementById('togQR').checked,
+    LocationEnabled:document.getElementById('togLocation').checked,
+    RadiusLockEnabled:document.getElementById('togRadius').checked
+  };
+  featureFlags.qrEnabled=settings.QREnabled;
+  featureFlags.locationEnabled=settings.LocationEnabled;
+  featureFlags.radiusEnabled=settings.RadiusLockEnabled;
   showLoading('กำลังบันทึก...');
   try{
     const d=await apiFetch('POST',{action:'saveSettings',settings,checkpoints:adminCheckpoints});
-    hideLoading();
-    if(!d.ok)throw new Error(d.msg);
+    hideLoading();if(!d.ok)throw new Error(d.msg);
     showAlert('settingsAlert','✅ บันทึกการตั้งค่าสำเร็จ','success');
-    syncSettingsUI();generateAllQR();
+    syncSettingsUI();
   }catch(e){hideLoading();showAlert('settingsAlert','บันทึกไม่ได้: '+e.message,'error');}
   setTimeout(()=>showAlert('settingsAlert','',''),4000);
 }
 
+// ============================================================
+// EMPLOYEES
+// ============================================================
 function renderEmployeeTable(){
   const tbody=document.getElementById('empTableBody');if(!tbody)return;
   if(!adminEmployees.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">ยังไม่มีข้อมูลพนักงาน</td></tr>';return;}
-  tbody.innerHTML=adminEmployees.map(e=>`<tr><td style="font-family:var(--mono)">${e.id}</td><td class="name">${e.name}</td><td>${e.branch||'—'}</td><td><span class="badge ${e.role==='admin'?'b-amber':'b-blue'}">${e.role||'user'}</span></td><td><span class="badge ${(e.isActive||e.active)?'b-teal':'b-gray'}">${(e.isActive||e.active)?'Active':'Inactive'}</span></td><td><button onclick="toggleEmpActive('${e.id}',${!(e.isActive||e.active)})" class="btn btn-outline btn-xs">${(e.isActive||e.active)?'<i class="ti ti-user-off"></i> ปิด':'<i class="ti ti-user-check"></i> เปิด'}</button></td></tr>`).join('');
+  tbody.innerHTML=adminEmployees.map(e=>`<tr>
+    <td style="font-family:var(--mono)">${e.id}</td>
+    <td class="name">${e.name}</td>
+    <td>${e.branch||'—'}</td>
+    <td><span class="badge ${e.role==='admin'?'b-amber':'b-blue'}">${e.role||'user'}</span></td>
+    <td><span class="badge ${(e.isActive||e.active)?'b-teal':'b-gray'}">${(e.isActive||e.active)?'Active':'Inactive'}</span></td>
+    <td><button onclick="toggleEmpActive('${e.id}',${!(e.isActive||e.active)})" class="btn btn-outline btn-xs">${(e.isActive||e.active)?'<i class="ti ti-user-off"></i> ปิด':'<i class="ti ti-user-check"></i> เปิด'}</button></td>
+  </tr>`).join('');
 }
 
 async function toggleEmpActive(empId,active){
@@ -1313,7 +1267,9 @@ async function toggleEmpActive(empId,active){
 function showAddEmpForm(){const f=document.getElementById('addEmpForm');f.style.display='block';f.scrollIntoView({behavior:'smooth'});}
 
 async function saveNewEmployee(){
-  const empId=document.getElementById('newEmpId').value.trim(),name=document.getElementById('newEmpName').value.trim(),branch=document.getElementById('newEmpBranch').value.trim(),position=document.getElementById('newEmpPosition').value.trim(),pin=document.getElementById('newEmpPin').value.trim(),role=document.getElementById('newEmpRole').value;
+  const empId=document.getElementById('newEmpId').value.trim(),name=document.getElementById('newEmpName').value.trim();
+  const branch=document.getElementById('newEmpBranch').value.trim(),position=document.getElementById('newEmpPosition').value.trim();
+  const pin=document.getElementById('newEmpPin').value.trim(),role=document.getElementById('newEmpRole').value;
   if(!empId||!name||!pin){showAlert('empAlert','กรุณากรอกข้อมูลให้ครบ','warn');return;}
   if(pin.length<4){showAlert('empAlert','PIN ต้องมีอย่างน้อย 4 ตัว','warn');return;}
   showLoading('กำลังบันทึก...');
