@@ -1,7 +1,4 @@
 // js/app.js — Entry point
-// Imports all HTML partials, assembles the DOM, then initialises the app.
-// Load order: overlays → views → admin pages → wire event listeners → boot.
-
 import { overlaysHTML }       from '../html/overlays.js';
 import { loginHTML }          from '../html/view-login.js';
 import { employeeHTML }       from '../html/view-employee.js';
@@ -11,6 +8,8 @@ import { pageWheelHTML }      from '../html/page-wheel.js';
 import { pageDashboardHTML }  from '../html/page-dashboard.js';
 import { pageSettingsHTML }   from '../html/page-settings.js';
 import { pageEmployeesHTML }  from '../html/page-employees.js';
+import { pageVotingHTML }     from '../html/page-voting.js';
+import { pageVoteUserHTML }   from '../html/page-vote-user.js';
 
 // ── 1. Build full HTML and inject into #app ────────────────
 const adminViewHTML = /* html */`
@@ -20,6 +19,7 @@ const adminViewHTML = /* html */`
     ${pageManualregHTML}
     ${pageWheelHTML}
     ${pageDashboardHTML}
+    ${pageVotingHTML}
     ${pageSettingsHTML}
     ${pageEmployeesHTML}
   </div>
@@ -30,6 +30,7 @@ document.getElementById('app').innerHTML =
   overlaysHTML +
   loginHTML    +
   employeeHTML +
+  pageVoteUserHTML +
   adminViewHTML;
 
 // ── 2. Guard: check Supabase config ───────────────────────
@@ -191,6 +192,25 @@ function wireEventListeners() {
     ?.addEventListener('click', closeWheelResult);
   document.getElementById('btnSpinAgain')
     ?.addEventListener('click', spinAgain);
+
+  // Admin: Voting page
+  document.getElementById('btnCreateContest')
+    ?.addEventListener('click', doCreateContest);
+  document.getElementById('btnRefreshContests')
+    ?.addEventListener('click', loadContestList);
+
+  // Vote view (user/superuser)
+  document.getElementById('btnVoteBack')
+    ?.addEventListener('click', () => showVoteStep('vstep-select'));
+  document.getElementById('btnSubmitVote')
+    ?.addEventListener('click', doSubmitVote);
+  document.getElementById('btnVoteAnother')
+    ?.addEventListener('click', async () => {
+      voteSelectedContest = null;
+      voteSelectedScore = null;
+      await renderVoteContestList();
+      showVoteStep('vstep-select');
+    });
 
   // Resize: confetti canvas + wheel redraw
   window.addEventListener('resize', () => {
