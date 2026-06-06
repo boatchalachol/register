@@ -12,7 +12,7 @@ export const loginHTML = /* html */`
       <div class="lockout-bar" id="lockoutBar"></div>
       <div class="field">
         <label for="loginEmpId">รหัสพนักงาน</label>
-        <input type="text" id="loginEmpId" placeholder="เช่น 5208" maxlength="10"
+        <input type="text" id="loginEmpId" placeholder="เช่น 1234" maxlength="10"
                autocomplete="off" inputmode="numeric" autocapitalize="none" autocorrect="off"
                aria-label="รหัสพนักงาน">
       </div>
