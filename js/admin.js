@@ -10,6 +10,7 @@ function setupAdminHeader(){
     <button class="htab" data-page="manualreg"><i class="ti ti-clipboard-check"></i><span> ลงทะเบียนแทน</span></button>
     <button class="htab" data-page="wheel"><i class="ti ti-wheel"></i><span> สุ่มรางวัล</span></button>
     <button class="htab" data-page="dashboard"><i class="ti ti-chart-bar"></i><span> Dashboard</span></button>
+    <button class="htab" data-page="voting"><i class="ti ti-trophy"></i><span> โหวต</span></button>
     <button class="htab" data-page="settings"><i class="ti ti-settings"></i><span> ตั้งค่า</span></button>
     <button class="htab" data-page="employees"><i class="ti ti-users"></i><span> พนักงาน</span></button>
     <button class="htab htab-danger" id="btnAdminLogout" title="ออกจากระบบ" aria-label="ออกจากระบบ"><i class="ti ti-logout"></i></button>
@@ -34,6 +35,7 @@ function showAdminPage(name,btnEl){
   if(name==='qr')refreshQRPage();
   if(name==='manualreg')initMRegPage();
   if(name==='wheel')initWheelPage();
+  if(name==='voting')initVotingPage();
 }
 
 // ══ ADMIN INIT ══════════════════════════════════════════════
