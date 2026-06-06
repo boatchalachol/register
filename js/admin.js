@@ -316,8 +316,8 @@ async function saveSettings(){
   // ค่าคะแนนโหวต
   const voteScoreUserEl=document.getElementById('voteScoreUserInput');
   const voteScoreSuperEl=document.getElementById('voteScoreSuperInput');
-  const voteScoreUser=Math.max(1,Math.min(100,parseInt(voteScoreUserEl?.value||'10')||10));
-  const voteScoreSuper=Math.max(10,Math.min(1000,parseInt(voteScoreSuperEl?.value||'100')||100));
+  const voteScoreUser=Math.max(1,Math.min(1000,parseInt(voteScoreUserEl?.value||'10')||10));
+  const voteScoreSuper=Math.max(1,Math.min(1000,parseInt(voteScoreSuperEl?.value||'100')||100));
   const settings={
     QREnabled:togQR?togQR.checked:featureFlags.qrEnabled,
     LocationEnabled:togLoc?togLoc.checked:featureFlags.locationEnabled,
