@@ -7,6 +7,7 @@
   --teal-bg:rgba(25,212,144,0.08);--teal-bd:rgba(25,212,144,0.22);
   --amber:#f5a623;--amber-bg:rgba(245,166,35,0.09);--amber-bd:rgba(245,166,35,0.25);
   --red:#f25555;--red-bg:rgba(242,85,85,0.09);--red-bd:rgba(242,85,85,0.25);
+  --purple:#9b6dff;--purple-bg:rgba(155,109,255,0.1);--purple-bd:rgba(155,109,255,0.25);
   --blue:#4a9cf0;--blue-bg:rgba(74,156,240,0.09);--blue-bd:rgba(74,156,240,0.25);
   --purple:#9b6dff;--purple-bg:rgba(155,109,255,0.09);--purple-bd:rgba(155,109,255,0.25);
   --font:'Noto Sans Thai',sans-serif;--mono:'IBM Plex Mono',monospace;
@@ -303,3 +304,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
   .admin-main{max-width:100%;padding:0}
   .qr-grid{grid-template-columns:repeat(3,1fr)}
 }
+
+/* Vote view — uses same .view pattern as other views */
+.vstep{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.h-logo.vote-logo-user{background:linear-gradient(135deg,var(--amber),#e07820);color:#1a0800}
+.h-logo.vote-logo-super{background:linear-gradient(135deg,var(--purple),#7c4dff);color:#fff}
