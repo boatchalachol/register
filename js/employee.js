@@ -57,6 +57,7 @@ async function doLogin(){
     if(lockCountdownTimer){clearInterval(lockCountdownTimer);lockCountdownTimer=null;}
     currentUser=res.emp;
     if(currentUser.role==='admin'){await initAdmin();setupAdminHeader();showView('admin');}
+    else if(currentUser.role==='superuser'||currentUser.role==='user'){await initVoteView();setupVoteHeader();showView('vote');}
     else{await initEmployee();setupUserHeader();showView('emp');}
   }catch(err){showAlert('loginAlert','เชื่อมต่อ Supabase ไม่ได้: '+err.message,'error');}
   finally{hideLoading();setBtn('btnLogin',false,'<i class="ti ti-login"></i> <span>เข้าสู่ระบบ</span>');}
@@ -74,6 +75,7 @@ function doLogout(){
   if(typeof dashSearchResults!=='undefined')dashSearchResults=[];
   if(typeof dashClearSearch==='function')dashClearSearch();
   currentTab='camera';
+  if(typeof resetVoteState==='function')resetVoteState();
   document.getElementById('mainHeader').style.display='none';
   document.getElementById('headerRight').innerHTML='';
   document.getElementById('loginEmpId').value='';
@@ -437,6 +439,7 @@ function resetEmpFlow(){
   stopScanner();stopGPSWatch();selectedCp=null;qrToken=null;gpsReady=false;
   userLat=null;userLng=null;userAcc=null;
   currentTab='camera';
+  if(typeof resetVoteState==='function')resetVoteState();
   renderCheckpoints();document.getElementById('btnSelectCp').disabled=true;
   showEmpStep('estep-checkpoint');
 }
