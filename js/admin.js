@@ -498,6 +498,12 @@ async function initWheelPage(){
   showAlert('wheelAlert','','');excludeWinners=false;
   const btn=document.getElementById('btnExcludeWinners');
   if(btn)btn.classList.remove('active');
+  // BUG FIX: reset filter to 'all' every time page is opened
+  wheelFilterCp='all';
+  // sync UI: make sure wfAll is active and all CP buttons are inactive
+  document.querySelectorAll('.wheel-filter-btn').forEach(b=>b.classList.remove('wf-active'));
+  const wfAll=document.getElementById('wfAll');
+  if(wfAll)wfAll.classList.add('wf-active');
   const cpBtns=document.getElementById('wfCpBtns');
   if(cpBtns){
     cpBtns.innerHTML='';
