@@ -137,7 +137,7 @@ async function sbLogin(empId,pin){
   const safeId=String(empId||'').trim().slice(0,50);
   const safePin=String(pin||'').trim().slice(0,8);
   if(!safeId||!safePin)return{ok:false,msg:'กรุณากรอกข้อมูลให้ครบ'};
-  const{data,error}=await db.from('employees').select('id,name,branch,position,role').eq('id',safeId).eq('pin',safePin).eq('is_active',true).single();
+  const{data,error}=await db.from('employees').select('id,name,branch,position,role').eq('id',safeId).eq('pin',safePin).eq('is_active',true).maybeSingle();
   if(error||!data)return{ok:false,msg:'รหัสพนักงานหรือ PIN ไม่ถูกต้อง'};
   return{ok:true,emp:{id:data.id,name:data.name,branch:data.branch,position:data.position,role:data.role}};
 }
@@ -181,7 +181,7 @@ async function sbGenerateQR(cpId,expiresAt,revokeOld){
 }
 async function sbValidateToken(token,cpId){
   if(!token)return{valid:false,msg:'ไม่มี QR Token'};
-  const{data,error}=await db.from('qr_tokens').select('*').eq('token',token).single();
+  const{data,error}=await db.from('qr_tokens').select('*').eq('token',token).maybeSingle();
   if(error||!data)return{valid:false,msg:'QR Token ไม่ถูกต้องหรือไม่มีอยู่ในระบบ'};
   if(!data.is_active)return{valid:false,msg:'QR Token ถูกยกเลิกแล้ว'};
   if(data.cp_id!==cpId)return{valid:false,msg:`QR นี้เป็นของ ${escHtml(data.cp_id)} ไม่ใช่ ${escHtml(cpId)}`};
@@ -223,7 +223,7 @@ async function sbRegister({empId,empName,branch,position,cpId,cpName,userLat:lat
     }
   }
   // SEC-B: reject if employee account is disabled
-  const{data:empCheck}=await db.from('employees').select('is_active').eq('id',empId).single();
+  const{data:empCheck}=await db.from('employees').select('is_active').eq('id',empId).maybeSingle();
   if(!empCheck?.is_active)return{ok:false,msg:'บัญชีพนักงานถูกปิดใช้งาน'};
   if(await sbAlreadyRegisteredToday(empId,cpId))
     return{ok:false,msg:'ลงทะเบียนจุดนี้ไปแล้ววันนี้'};
@@ -294,7 +294,7 @@ async function sbGetEmployees(){
   if(error)throw error;return data||[];
 }
 async function sbAddEmployee({empId,name,branch,position,pin,role}){
-  const{data:existing}=await db.from('employees').select('id').eq('id',empId).single();
+  const{data:existing}=await db.from('employees').select('id').eq('id',empId).maybeSingle();
   if(existing)return{ok:false,msg:'รหัสพนักงานนี้มีอยู่แล้ว'};
   const{error}=await db.from('employees').insert({id:empId,name,branch:branch||'',position:position||'',pin,is_active:true,role:role||'user'});
   if(error)return{ok:false,msg:error.message};return{ok:true};
