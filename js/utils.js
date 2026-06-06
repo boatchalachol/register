@@ -27,7 +27,7 @@ let wheelParticipants=[], wheelFilterCp='all', wheelSpinning=false, wheelAngle=0
 let wheelWinners=[], confettiAnimId=null, excludeWinners=false;
 let wheelAnimFrame=null;
 // Login brute-force protection
-let loginAttempts=0, loginLockUntil=0, lockoutTimerId=null;
+let loginAttempts=0, loginLockUntil=0, lockoutTimerId=null, lockoutCount=0;
 // Dashboard auto-refresh
 let dashRefreshTimer=null;
 
