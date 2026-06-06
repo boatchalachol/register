@@ -442,11 +442,20 @@ async function doRegister(){
       <div class="info-cell"><div class="ic-lbl">ระยะห่าง</div><div class="ic-val teal">${res.distanceM} ม.</div></div>
       <div class="info-cell ic-span"><div class="ic-lbl">Registration ID</div><div class="ic-val" style="font-family:var(--mono);font-size:12px">${escHtml(res.regId)}</div></div>`;
     stopScanner();stopGPSWatch();showEmpStep('estep-success');
-    // user/superuser → ไปหน้าโหวตอัตโนมัติหลังลงทะเบียนสำเร็จ
+    // คนที่มีสิทธิ์โหวต (user/superuser) → เด้งไปหน้าโหวตทันที พร้อม countdown bar
     if(currentUser.role==='user'||currentUser.role==='superuser'){
+      const bar=document.getElementById('voteRedirectBar');
+      const barFill=document.getElementById('voteCountdownBar');
+      if(bar){bar.style.display='block';}
+      // animate bar จาก 100% → 0% ใน 2 วินาที
+      if(barFill){
+        requestAnimationFrame(()=>{
+          requestAnimationFrame(()=>{ barFill.style.width='0%'; });
+        });
+      }
       setTimeout(async()=>{
         await initVoteView();setupVoteHeader();showView('vote');
-      },2500);
+      },2000);
     }
   }catch(err){showAlert('qrAlert','เกิดข้อผิดพลาด: '+err.message,'error');}
   finally{hideLoading();setConfirmBtn(true);}
