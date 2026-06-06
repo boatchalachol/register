@@ -913,17 +913,30 @@ function openEditEmpModal(empId){
       </div>
       <div id="editEmpAlert"></div>
       <div class="grid2" style="gap:12px">
-        <div class="field"><label>ชื่อ-นามสกุล *</label><input type="text" id="editEmpName" maxlength="100"></div>
-        <div class="field"><label>แผนก</label><input type="text" id="editEmpBranch" maxlength="60"></div>
-        <div class="field"><label>ตำแหน่ง</label><input type="text" id="editEmpPosition" maxlength="60"></div>
+        <div class="field">
+          <label>รหัสพนักงาน</label>
+          <input type="text" id="editEmpIdDisplay" disabled
+            style="opacity:.5;cursor:not-allowed;background:var(--bg2)">
+        </div>
+        <div class="field"><label>ชื่อ-นามสกุล *</label>
+          <input type="text" id="editEmpName" maxlength="100" placeholder="ชื่อเต็ม">
+        </div>
+        <div class="field"><label>แผนก</label>
+          <input type="text" id="editEmpBranch" maxlength="60" placeholder="เช่น ไอที, บัญชี">
+        </div>
+        <div class="field"><label>ตำแหน่ง</label>
+          <input type="text" id="editEmpPosition" maxlength="60" placeholder="เช่น สำนักงานใหญ่">
+        </div>
+        <div class="field"><label>PIN ใหม่ (เว้นว่าง = ไม่เปลี่ยน)</label>
+          <input type="password" id="editEmpPin" placeholder="••••" maxlength="8" inputmode="numeric">
+        </div>
         <div class="field"><label>Role</label>
           <select id="editEmpRole">
             <option value="user">user — พนักงานทั่วไป</option>
+            <option value="superuser">superuser — ผู้โหวตพิเศษ</option>
             <option value="admin">admin — ผู้ดูแลระบบ</option>
+            <option value="employee">employee — ลงทะเบียนเข้างาน</option>
           </select>
-        </div>
-        <div class="field" style="grid-column:1/-1"><label>PIN ใหม่ (เว้นว่าง = ไม่เปลี่ยน)</label>
-          <input type="password" id="editEmpPin" placeholder="••••" maxlength="8" inputmode="numeric">
         </div>
       </div>
       <div style="display:flex;gap:10px;margin-top:16px">
@@ -939,6 +952,7 @@ function openEditEmpModal(empId){
   // เติมข้อมูล
   modal.dataset.empId=empId;
   document.getElementById('editEmpIdLabel').textContent=`(${empId})`;
+  document.getElementById('editEmpIdDisplay').value=empId;
   document.getElementById('editEmpName').value=emp.name||'';
   document.getElementById('editEmpBranch').value=emp.branch||'';
   document.getElementById('editEmpPosition').value=emp.position||'';
@@ -1034,8 +1048,8 @@ async function saveNewEmployee(){
   const position=sanitize(document.getElementById('newEmpPosition').value.trim());
   const pin=document.getElementById('newEmpPin').value.trim();
   const role=document.getElementById('newEmpRole').value;
-  if(!empId||!name||!pin){showAlert('empAlert','กรุณากรอกข้อมูลที่จำเป็น (รหัส, ชื่อ, PIN)','warn');return;}
-  if(!/^\d{4,8}$/.test(pin)){showAlert('empAlert','PIN ต้องเป็นตัวเลข 4-8 หลักเท่านั้น','warn');return;}
+  if(!empId||!name||!pin){showAlert('addEmpAlert','กรุณากรอกข้อมูลที่จำเป็น (รหัส, ชื่อ, PIN)','warn');return;}
+  if(!/^\d{4,8}$/.test(pin)){showAlert('addEmpAlert','PIN ต้องเป็นตัวเลข 4-8 หลักเท่านั้น','warn');return;}
   showLoading('กำลังบันทึก...');
   try{
     const res=await sbAddEmployee({empId,name,branch,position,pin,role});
@@ -1047,7 +1061,7 @@ async function saveNewEmployee(){
     });
     showAlert('empAlert',`✅ เพิ่มพนักงาน "${name}" สำเร็จ`,'success');
     await loadEmployees();renderEmployeeTable();
-  }catch(e){hideLoading();showAlert('empAlert','บันทึกไม่ได้: '+e.message,'error');}
+  }catch(e){hideLoading();showAlert('addEmpAlert','บันทึกไม่ได้: '+e.message,'error');}
 }
 
 // Event bindings are wired in app.js wireEventListeners()
