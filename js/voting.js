@@ -300,7 +300,7 @@ async function renderVoteContestList() {
         ${!voted ? '<i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px;flex-shrink:0"></i>' : ''}
       `;
       if (!voted) {
-        item.addEventListener('click', () => openVoteScore(c));
+        item.addEventListener('click', async () => { await openVoteScore(c); });
       }
       wrap.appendChild(item);
     });
@@ -320,14 +320,15 @@ async function openVoteScore(contest) {
   const voteSettings = await sbGetSettings();
   const userVoteScore  = parseInt(voteSettings['VoteScoreUser']  || '10');
   const superVoteScore = parseInt(voteSettings['VoteScoreSuper'] || '100');
-  const min  = isSuper ? Math.min(10, superVoteScore) : 1;
+  const min  = 1;
   const max  = isSuper ? superVoteScore : userVoteScore;
-  const step = isSuper ? (superVoteScore <= 50 ? 5 : 10) : 1;
+  // step อัตโนมัติเพื่อไม่ให้ปุ่มเยอะเกิน ~20 ปุ่ม
+  const step = max <= 20 ? 1 : max <= 50 ? 5 : max <= 200 ? 10 : 25;
 
   const label = document.getElementById('voteRangeLabel');
   if (label) label.innerHTML = isSuper
     ? `<i class="ti ti-star" style="color:var(--amber)"></i> <strong>Super User</strong>: ให้คะแนนได้ <strong>${min} – ${max}</strong> คะแนน (ทีละ ${step})`
-    : `<i class="ti ti-user" style="color:var(--teal)"></i> <strong>User</strong>: ให้คะแนนได้ <strong>1 – ${max}</strong> คะแนน`;
+    : `<i class="ti ti-user" style="color:var(--teal)"></i> <strong>User</strong>: ให้คะแนนได้ <strong>1 – ${max}</strong> คะแนน (ทีละ ${step})`;
 
   const scoreDisp = document.getElementById('voteScoreDisplay');
   if (scoreDisp) scoreDisp.textContent = '-';
