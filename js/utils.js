@@ -280,6 +280,20 @@ async function sbToggleEmployee(empId,active){
   const{error}=await db.from('employees').update({is_active:active}).eq('id',empId);
   if(error)return{ok:false,msg:error.message};return{ok:true};
 }
+async function sbUpdateEmployee(empId,{name,branch,position,role,pin}){
+  const upd={name,branch:branch||'',position:position||'',role:role||'user'};
+  if(pin)upd.pin=pin;
+  const{error}=await db.from('employees').update(upd).eq('id',empId);
+  if(error)return{ok:false,msg:error.message};return{ok:true};
+}
+async function sbDeleteEmployee(empId){
+  const{error}=await db.from('employees').delete().eq('id',empId);
+  if(error)return{ok:false,msg:error.message};return{ok:true};
+}
+async function sbDeleteRegistrations(empId){
+  const{error}=await db.from('registrations').delete().eq('emp_id',empId);
+  if(error)return{ok:false,msg:error.message};return{ok:true};
+}
 // ── Winners ──────────────────────────────────────────────────
 async function sbGetTodayWinners(){
   const{start,end}=bkkDayRange();
