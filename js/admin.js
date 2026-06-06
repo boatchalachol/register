@@ -473,6 +473,15 @@ async function initWheelPage(){
       cpBtns.appendChild(b);
     });
   }
+  // โหลดผู้โชคดีวันนี้จาก Supabase
+  try{
+    const saved=await sbGetTodayWinners();
+    wheelWinners=saved.map(w=>({
+      ...w,
+      _wonAt:new Date(w.won_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'})
+    }));
+    renderWinnerList();
+  }catch(e){console.warn('โหลดผู้โชคดีไม่สำเร็จ:',e);}
   await loadWheelData();
 }
 async function loadWheelData(){
@@ -588,8 +597,10 @@ function showWheelResult(winner){
   document.getElementById('wrMeta').textContent=winner.emp_id||'—';
   document.getElementById('wrCp').textContent='📍 '+(winner.cp_name||'—');
   document.getElementById('wheelResultModal').classList.add('show');
-  wheelWinners.unshift({...winner,_wonAt:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'})});
+  const wonAt=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'});
+  wheelWinners.unshift({...winner,_wonAt:wonAt});
   renderWinnerList();startConfetti();
+  sbSaveWinner(winner).catch(e=>console.warn('บันทึกผู้โชคดีไม่สำเร็จ:',e));
   if(excludeWinners)setTimeout(loadWheelData,500);
 }
 function closeWheelResult(){document.getElementById('wheelResultModal').classList.remove('show');stopConfetti();}
@@ -632,6 +643,7 @@ function renderWinnerList(){
 function clearWinners(){
   if(!wheelWinners.length)return;
   if(!confirm(`ล้างรายชื่อผู้โชคดี ${wheelWinners.length} คน?`))return;
+  sbClearTodayWinners().catch(e=>console.warn('ล้างผู้โชคดีไม่สำเร็จ:',e));
   wheelWinners=[];renderWinnerList();
   if(excludeWinners)loadWheelData();
 }
