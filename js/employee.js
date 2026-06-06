@@ -443,4 +443,3 @@ function resetEmpFlow(){
   renderCheckpoints();document.getElementById('btnSelectCp').disabled=true;
   showEmpStep('estep-checkpoint');
 }
-
