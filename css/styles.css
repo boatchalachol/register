@@ -305,7 +305,18 @@ tr:hover td{background:rgba(255,255,255,.02)}
   .qr-grid{grid-template-columns:repeat(3,1fr)}
 }
 
-/* Vote view — uses same .view pattern as other views */
+/* Vote view — ใช้ class vote-main แยกจาก emp-main เพื่อควบคุม width ได้อิสระ */
+#view-vote{align-items:stretch}
+#view-vote .emp-main{width:100%;max-width:680px;margin:0 auto}
+
+@media(min-width:900px){
+  #view-vote .emp-main{max-width:860px}
+  /* ปุ่มคะแนนบน Desktop ใหญ่ขึ้น */
+  #voteScoreBtns .score-btn{min-height:64px!important;font-size:20px!important}
+}
+@media(min-width:600px) and (max-width:899px){
+  #view-vote .emp-main{max-width:680px}
+}
 .vstep{animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .h-logo.vote-logo-user{background:linear-gradient(135deg,var(--amber),#e07820);color:#1a0800}
@@ -325,9 +336,6 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
   /* Employee flow wider */
   .emp-main{max-width:560px}
-
-  /* Vote view wider on desktop */
-  #view-vote .emp-main{max-width:600px}
 
   /* Admin uses full available width */
   .admin-main{max-width:1100px;padding:24px 24px calc(60px + var(--safe-bot))}
@@ -355,7 +363,6 @@ tr:hover td{background:rgba(255,255,255,.02)}
 /* ── Tablet (600px – 899px) ── */
 @media(min-width:600px) and (max-width:899px){
   .emp-main{max-width:520px}
-  #view-vote .emp-main{max-width:520px}
   .htab span{display:inline!important}
   .stat-grid{grid-template-columns:repeat(2,1fr)}
 }
@@ -439,4 +446,3 @@ tr:hover td{background:rgba(255,255,255,.02)}
 /* ── Smooth view transitions ── */
 .view{transition:opacity .2s ease}
 .view.active{animation:fadeUp .25s ease both}
-
