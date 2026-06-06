@@ -31,7 +31,7 @@ function showAdminPage(name,btnEl){
   if(btnEl instanceof Element)btnEl.classList.add('active');
   if(name==='dashboard'){loadDashboard();dashRefreshTimer=setInterval(loadDashboard,60000);}
   if(name==='employees')loadEmployees().then(renderEmployeeTable);
-  if(name==='settings'){loadCheckpoints().then(()=>{renderCpSettings();});syncSettingsUI();}
+  if(name==='settings'){loadCheckpoints().then(()=>{renderCpSettings();});loadSettingsAdmin();syncSettingsUI();}
   if(name==='qr')refreshQRPage();
   if(name==='manualreg')initMRegPage();
   if(name==='wheel')initWheelPage();
@@ -58,6 +58,11 @@ async function loadSettingsAdmin(){
     if(togQR)togQR.checked=featureFlags.qrEnabled;
     if(togLoc)togLoc.checked=featureFlags.locationEnabled;
     if(togRad)togRad.checked=featureFlags.radiusEnabled;
+    // โหลดค่าคะแนนโหวต
+    const userScoreEl=document.getElementById('voteScoreUserInput');
+    const superScoreEl=document.getElementById('voteScoreSuperInput');
+    if(userScoreEl)userScoreEl.value=s['VoteScoreUser']||'10';
+    if(superScoreEl)superScoreEl.value=s['VoteScoreSuper']||'100';
   }catch(e){console.error('loadSettingsAdmin error:',e);}
 }
 async function loadQRTokens(){try{adminQRTokens=await sbGetQRTokens(true);}catch(e){adminQRTokens=[];}}
@@ -308,10 +313,17 @@ async function saveSettings(){
   const togQR=document.getElementById('togQR');
   const togLoc=document.getElementById('togLocation');
   const togRad=document.getElementById('togRadius');
+  // ค่าคะแนนโหวต
+  const voteScoreUserEl=document.getElementById('voteScoreUserInput');
+  const voteScoreSuperEl=document.getElementById('voteScoreSuperInput');
+  const voteScoreUser=Math.max(1,Math.min(100,parseInt(voteScoreUserEl?.value||'10')||10));
+  const voteScoreSuper=Math.max(10,Math.min(1000,parseInt(voteScoreSuperEl?.value||'100')||100));
   const settings={
     QREnabled:togQR?togQR.checked:featureFlags.qrEnabled,
     LocationEnabled:togLoc?togLoc.checked:featureFlags.locationEnabled,
-    RadiusLockEnabled:togRad?togRad.checked:featureFlags.radiusEnabled
+    RadiusLockEnabled:togRad?togRad.checked:featureFlags.radiusEnabled,
+    VoteScoreUser:voteScoreUser,
+    VoteScoreSuper:voteScoreSuper
   };
   featureFlags.qrEnabled=settings.QREnabled;
   featureFlags.locationEnabled=settings.LocationEnabled;
