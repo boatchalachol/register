@@ -1,4 +1,4 @@
-page-wheel.js // html/page-wheel.js — Admin: Lucky Wheel page
+// html/page-wheel.js — Admin: Lucky Wheel page
 export const pageWheelHTML = /* html */`
 
 <!-- ── Lucky Wheel Page ──────────────────────────────────── -->
