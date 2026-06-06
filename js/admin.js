@@ -442,6 +442,7 @@ async function mregDoRegister(){
   if(!mregSelEmp){showAlert('mregAlert','กรุณาเลือกพนักงาน','warn');return;}
   if(!mregSelCp){showAlert('mregAlert','กรุณาเลือก Checkpoint','warn');return;}
   const note=(document.getElementById('mregNote')?.value||'').trim().slice(0,500);
+  setBtn('btnMregConfirm',true);
   showLoading('กำลังลงทะเบียนแทน...');
   try{
     const res=await sbRegister({
@@ -467,7 +468,7 @@ async function mregDoRegister(){
     document.getElementById('mstep3').classList.add('active');
     updateMRegStepBar(3);
   }catch(err){showAlert('mregAlert','เกิดข้อผิดพลาด: '+err.message,'error');}
-  finally{hideLoading();}
+  finally{hideLoading();setBtn('btnMregConfirm',!mregSelCp);}
 }
 function mregReset(){
   mregSelEmp=null;mregSelCp=null;
