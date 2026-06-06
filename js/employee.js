@@ -27,9 +27,10 @@ async function doLogin(){
       loginAttempts++;
       if(loginAttempts>=5){
         // SEC-C: exponential backoff — 30s, 2min, 10min, 1hr+
-        const tier=Math.floor((loginAttempts-5)/5);
+        // lockoutCount persists across lockouts to escalate correctly
         const delays=[30000,120000,600000,3600000];
-        const lockMs=delays[Math.min(tier,delays.length-1)];
+        const lockMs=delays[Math.min(lockoutCount,delays.length-1)];
+        lockoutCount++;
         loginLockUntil=Date.now()+lockMs;loginAttempts=0;
         if(lockoutTimerId)clearTimeout(lockoutTimerId);
         lockoutTimerId=setTimeout(()=>{
@@ -42,7 +43,7 @@ async function doLogin(){
       showAlert('loginAlert',res.msg+(remaining<5?` (เหลือ ${remaining} ครั้ง)`:''),'error');
       return;
     }
-    loginAttempts=0;loginLockUntil=0;
+    loginAttempts=0;loginLockUntil=0;lockoutCount=0;
     if(lockoutTimerId){clearTimeout(lockoutTimerId);lockoutTimerId=null;}
     currentUser=res.emp;
     if(currentUser.role==='admin'){await initAdmin();setupAdminHeader();showView('admin');}
@@ -58,7 +59,7 @@ function doLogout(){
   currentUser=null;selectedCp=null;allCps=[];qrToken=null;gpsReady=false;
   userLat=null;userLng=null;userAcc=null;cameraAvailable=null;adminQRTokens=[];
   mregSelEmp=null;mregSelCp=null;wheelParticipants=[];wheelWinners=[];
-  excludeWinners=false;loginAttempts=0;loginLockUntil=0;
+  excludeWinners=false;loginAttempts=0;loginLockUntil=0;lockoutCount=0;
   if(typeof dashSearchResults!=='undefined')dashSearchResults=[];
   if(typeof dashClearSearch==='function')dashClearSearch();
   currentTab='camera';
