@@ -320,27 +320,31 @@ async function openVoteScore(contest) {
   const voteSettings = await sbGetSettings();
   const userVoteScore  = parseInt(voteSettings['VoteScoreUser']  || '10');
   const superVoteScore = parseInt(voteSettings['VoteScoreSuper'] || '100');
-  const min  = 1;
-  const max  = isSuper ? superVoteScore : userVoteScore;
-  // step อัตโนมัติเพื่อไม่ให้ปุ่มเยอะเกิน ~20 ปุ่ม
-  const step = max <= 20 ? 1 : max <= 50 ? 5 : max <= 200 ? 10 : 25;
+  // สร้าง 10 ระดับคะแนน: step=max/10 เสมอ → 10,20,...,100 (ถ้า max=100)
+  const levels = 10;
+  const step = Math.ceil(max / levels);
+  const scoreValues = [];
+  for (let i = 1; i <= levels; i++) {
+    const v = Math.min(i * step, max);
+    if (!scoreValues.includes(v)) scoreValues.push(v);
+  }
 
   const label = document.getElementById('voteRangeLabel');
   if (label) label.innerHTML = isSuper
-    ? `<i class="ti ti-star" style="color:var(--amber)"></i> <strong>Super User</strong>: ให้คะแนนได้ <strong>${min} – ${max}</strong> คะแนน (ทีละ ${step})`
-    : `<i class="ti ti-user" style="color:var(--teal)"></i> <strong>User</strong>: ให้คะแนนได้ <strong>1 – ${max}</strong> คะแนน (ทีละ ${step})`;
+    ? `<i class="ti ti-star" style="color:var(--amber)"></i> <strong>Super User</strong>: ให้คะแนนได้ <strong>1 – ${max}</strong> คะแนน (${levels} ระดับ)`
+    : `<i class="ti ti-user" style="color:var(--teal)"></i> <strong>User</strong>: ให้คะแนนได้ <strong>1 – ${max}</strong> คะแนน (${levels} ระดับ)`;
 
   const scoreDisp = document.getElementById('voteScoreDisplay');
   if (scoreDisp) scoreDisp.textContent = '-';
   const submitBtn = document.getElementById('btnSubmitVote');
   if (submitBtn) submitBtn.disabled = true;
 
-  // Build score buttons
+  // Build score buttons (10 ระดับ สร้างไว้แล้วด้านบน)
   const btnsWrap = document.getElementById('voteScoreBtns');
   btnsWrap.innerHTML = '';
-  btnsWrap.style.gridTemplateColumns = isSuper ? 'repeat(5, 1fr)' : 'repeat(5, 1fr)';
+  btnsWrap.style.gridTemplateColumns = 'repeat(5, 1fr)';
 
-  for (let v = min; v <= max; v += step) {
+  for (const v of scoreValues) {
     const b = document.createElement('button');
     b.className = 'score-btn';
     b.textContent = v;
