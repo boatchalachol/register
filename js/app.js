@@ -241,7 +241,16 @@ const employeeHTML = `
       <div class="success-title">ลงทะเบียนสำเร็จ!</div>
       <div class="success-sub" id="successSub">บันทึกข้อมูลเรียบร้อยแล้ว</div>
       <div class="info-grid" id="successGrid"></div>
-      <button class="btn btn-outline" id="btnResetEmpFlow">
+      <!-- แสดงเฉพาะ user/superuser ที่มีสิทธิ์โหวต -->
+      <div id="voteRedirectBar" style="display:none;margin-top:16px">
+        <div style="font-size:13px;color:var(--teal);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          <i class="ti ti-trophy"></i> กำลังไปหน้าโหวต...
+        </div>
+        <div style="height:4px;background:var(--bg3);border-radius:4px;overflow:hidden">
+          <div id="voteCountdownBar" style="height:100%;width:100%;background:var(--teal);border-radius:4px;transition:width 1.8s linear"></div>
+        </div>
+      </div>
+      <button class="btn btn-outline" id="btnResetEmpFlow" style="margin-top:16px">
         <i class="ti ti-refresh"></i> ลงทะเบียนอีกครั้ง
       </button>
     </div>
