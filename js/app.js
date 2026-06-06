@@ -1103,7 +1103,9 @@ function wireEventListeners() {
   document.getElementById('btnClearWinners')
     ?.addEventListener('click', clearWinners);
   document.getElementById('wfAll')
-    ?.addEventListener('click', () => setWheelFilter('all', document.getElementById('wfAll')));
+    ?.addEventListener('click', () => setWheelFilter('all', 'all', document.getElementById('wfAll')));
+  document.getElementById('wfOnTime')
+    ?.addEventListener('click', () => setWheelFilter('ontime', 'all', document.getElementById('wfOnTime')));
 
   // Wheel result modal
   document.getElementById('btnCloseWheelResult')
