@@ -195,6 +195,12 @@ async function sbAlreadyRegisteredToday(empId,cpId){
   const{data}=await db.from('registrations').select('id').eq('emp_id',empId).eq('cp_id',cpId).gte('registered_at',start).lte('registered_at',end).limit(1);
   return data&&data.length>0;
 }
+// ตรวจสอบว่า user ลงทะเบียนวันนี้แล้วหรือยัง (ไม่ขึ้นกับ checkpoint)
+async function sbCheckUserRegisteredToday(empId){
+  const{start,end}=bkkDayRange();
+  const{data}=await db.from('registrations').select('id').eq('emp_id',empId).gte('registered_at',start).lte('registered_at',end).limit(1);
+  return data&&data.length>0;
+}
 async function sbRegister({empId,empName,branch,position,cpId,cpName,userLat:lat,userLng:lng,accuracy,distanceM,qrToken:tok,isManual,adminId,note}){
   empName=sanitize(empName);
   branch=sanitize(branch);
