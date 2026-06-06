@@ -252,11 +252,11 @@ async function sbRegister({empId,empName,branch,position,cpId,cpName,userLat:lat
   return{ok:true,regId,ts:ts.toISOString(),distanceM:Math.round(distanceM||0)};
 }
 async function sbGetDashboard(){
-  const{start}=bkkDayRange();
+  const{start,end}=bkkDayRange();
   const safe=async q=>{try{return await q;}catch(e){return{data:null,count:null,error:e};}};
   const[totRes,todayRes,cpRes,empRes,recentRes]=await Promise.all([
     safe(db.from('registrations').select('id',{count:'exact',head:true})),
-    safe(db.from('registrations').select('id',{count:'exact',head:true}).gte('registered_at',start)),
+    safe(db.from('registrations').select('id',{count:'exact',head:true}).gte('registered_at',start).lte('registered_at',end)),
     safe(db.from('checkpoints').select('id',{count:'exact',head:true}).eq('is_active',true)),
     safe(db.from('employees').select('id',{count:'exact',head:true}).eq('is_active',true)),
     safe(db.from('registrations').select('id,emp_name,cp_name,registered_at,distance_m,is_manual').order('registered_at',{ascending:false}).limit(10))
