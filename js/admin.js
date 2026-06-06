@@ -3,7 +3,7 @@ function setupAdminHeader(){
   document.getElementById('mainHeader').style.display='flex';
   document.getElementById('headerLogo').className='h-logo admin-logo';
   document.getElementById('headerLogo').innerHTML='<i class="ti ti-shield-lock"></i>';
-  document.getElementById('headerTitle').textContent='Admin Panel';
+  document.getElementById('headerTitle').textContent='CHALACHOL ADMIN';
   document.getElementById('headerSub').textContent='Admin: '+(currentUser.name||'');
   document.getElementById('headerRight').innerHTML=`<div class="h-tabs">
     <button class="htab active" data-page="qr"><i class="ti ti-qrcode"></i><span> QR</span></button>
