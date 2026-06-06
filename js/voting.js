@@ -398,10 +398,12 @@ function setupVoteHeader() {
   logoEl.className = isSuper ? 'h-logo vote-logo-super' : 'h-logo vote-logo-user';
   logoEl.style.cssText = '';
   logoEl.innerHTML = isSuper ? '<i class="ti ti-star"></i>' : '<i class="ti ti-trophy"></i>';
-  document.getElementById('headerTitle').textContent = isSuper ? 'Super Voter' : 'โหวตให้คะแนน';
+  const titleText = isSuper ? 'Super Voter' : 'โหวตให้คะแนน';
+  document.getElementById('headerTitle').innerHTML =
+    titleText + (isSuper ? ' <span class="super-badge"><i class="ti ti-bolt" style="font-size:10px"></i> SUPER</span>' : '');
   document.getElementById('headerSub').textContent = currentUser.name || '';
   document.getElementById('headerRight').innerHTML =
-    `<button class="btn btn-outline btn-sm" id="btnVoteLogout"><i class="ti ti-logout"></i> ออก</button>`;
+    `<button class="btn btn-outline btn-sm" id="btnVoteLogout"><i class="ti ti-logout"></i> <span>ออก</span></button>`;
   document.getElementById('btnVoteLogout')?.addEventListener('click', doLogout);
 }
 
