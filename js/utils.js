@@ -20,16 +20,17 @@ let scannerStream=null, scannerRunning=false, scannerAnimFrame=null;
 let currentTab='camera', cameraAvailable=null;
 let adminCheckpoints=[], adminEmployees=[], adminQRTokens=[];
 let qrTimers={};
-let featureFlags={qrEnabled:true,locationEnabled:false,radiusEnabled:false};
+let featureFlags={qrEnabled:true,locationEnabled:false,radiusEnabled:false,wheelOnTime:'09:00'};
 let mregSelEmp=null, mregSelCp=null;
 // Wheel
-let wheelParticipants=[], wheelFilterCp='all', wheelSpinning=false, wheelAngle=0;
+let wheelParticipants=[], wheelFilterCp='all', wheelMode='all', wheelSpinning=false, wheelAngle=0;
 let wheelWinners=[], confettiAnimId=null, excludeWinners=false;
 let wheelAnimFrame=null;
 // Login brute-force protection
 let loginAttempts=0, loginLockUntil=0, lockoutTimerId=null, lockoutCount=0, lockCountdownTimer=null;
 // Dashboard auto-refresh
 let dashRefreshTimer=null;
+let voteRealtimeChannel=null;
 
 const WHEEL_COLORS=[
   '#19d490','#f5a623','#4a9cf0','#9b6dff','#f25555',
@@ -271,11 +272,17 @@ async function sbGetDashboard(){
     }))
   };
 }
-async function sbGetTodayRegistrations(cpId){
+async function sbGetTodayRegistrations(cpId, onTimeBefore){
   const{start,end}=bkkDayRange();
   let q=db.from('registrations').select('emp_id,emp_name,cp_id,cp_name,registered_at').gte('registered_at',start).lte('registered_at',end);
   const isFiltered=cpId&&cpId!=='all';
   if(isFiltered)q=q.eq('cp_id',cpId);
+  // กรองตรงเวลา: ใช้กับทุกโหมด (all หรือ cp เฉพาะ) ถ้ามี onTimeBefore
+  if(onTimeBefore){
+    const today=bkkDate();
+    const cutoff=new Date(today+'T'+onTimeBefore+':00+07:00').toISOString();
+    q=q.lt('registered_at',cutoff);
+  }
   const{data,error}=await q;if(error)throw error;
   // LOGIC-04 fix: only dedup by emp_id when showing ALL checkpoints
   // When filtered by specific CP, return all rows (including multi-register same person)
