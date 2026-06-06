@@ -51,14 +51,12 @@ export const pageDashboardHTML = /* html */`
     </div>
     <div id="dashSearchBox" style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:10px">
       <input type="text" id="dashSearchName" placeholder="ค้นหาชื่อ / รหัสพนักงาน" maxlength="80"
-        style="background:var(--bg3,#161b27);border:1px solid var(--border2,#2a3245);border-radius:8px;color:var(--text,#e2e8f0);padding:8px 12px;font-size:13px;font-family:var(--font);outline:none;transition:border .2s"
-        oninput="dashSearchRegs()" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--border2)'">
+        style="background:var(--bg3,#161b27);border:1px solid var(--border2,#2a3245);border-radius:8px;color:var(--text,#e2e8f0);padding:8px 12px;font-size:13px;font-family:var(--font);outline:none;transition:border .2s">
       <select id="dashSearchCp"
-        style="background:var(--bg3,#161b27);border:1px solid var(--border2,#2a3245);border-radius:8px;color:var(--text2,#94a3b8);padding:8px 12px;font-size:13px;font-family:var(--font);outline:none"
-        onchange="dashSearchRegs()">
+        style="background:var(--bg3,#161b27);border:1px solid var(--border2,#2a3245);border-radius:8px;color:var(--text2,#94a3b8);padding:8px 12px;font-size:13px;font-family:var(--font);outline:none">
         <option value="">— ทุก Checkpoint —</option>
       </select>
-      <button class="btn btn-outline btn-sm" onclick="dashClearSearch()" title="ล้างการค้นหา">
+      <button class="btn btn-outline btn-sm" id="btnDashClearSearch" title="ล้างการค้นหา">
         <i class="ti ti-x"></i>
       </button>
     </div>
