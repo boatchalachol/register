@@ -749,7 +749,7 @@ function renderRecentTable(rows){
       ${locOn?`<td><span style="color:var(--teal);font-family:var(--mono)">${r.distanceM!=null?escHtml(String(r.distanceM))+'m':'—'}</span></td>`:''}
       <td>${r.regId?`<button data-del-reg="${escHtml(r.regId)}" class="btn btn-outline btn-xs" style="color:var(--red,#f87171);border-color:var(--red,#f87171);padding:3px 7px" title="ลบรายการนี้"><i class="ti ti-trash" style="font-size:12px"></i></button>`:'—'}</td>`;
     if(r.regId){
-      tr.querySelector(`[data-del-reg]`).addEventListener('click',ev=>confirmDeleteOneReg(ev.currentTarget.dataset.delReg,r.empName,r.ts));
+      tr.querySelector(`[data-del-reg]`).addEventListener('click',ev=>confirmDeleteOneReg(ev.currentTarget.dataset.delReg,r.empName,r.registeredAt||r.ts));
     }
     tbody.appendChild(tr);
   });
@@ -1035,13 +1035,7 @@ async function saveNewEmployee(){
   }catch(e){hideLoading();showAlert('empAlert','บันทึกไม่ได้: '+e.message,'error');}
 }
 
-// ══ EVENT BINDINGS (ADMIN) ══════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>{
-  // Admin QR
-  document.getElementById('btnGenerateAllQR')?.addEventListener('click',generateAllQR);
-  document.querySelectorAll('.preset-btn').forEach(btn=>{
-    btn.addEventListener('click',e=>setExpiryPreset(parseFloat(btn.dataset.days||'0'),e));
-  });
+// Event bindings are wired in app.js wireEventListeners()
   // Admin settings
   document.getElementById('btnAddCheckpoint')?.addEventListener('click',addCheckpointRow);
   document.getElementById('btnSaveSettings')?.addEventListener('click',saveSettings);
