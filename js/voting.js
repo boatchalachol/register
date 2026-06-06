@@ -90,6 +90,13 @@ async function sbGetMyVotedContests() {
 
 async function initVotingPage() {
   await loadContestList();
+  // Realtime: subscribe votes table — reload ทันทีเมื่อมี vote ใหม่
+  if(voteRealtimeChannel)db.removeChannel(voteRealtimeChannel);
+  voteRealtimeChannel=db.channel('votes-admin')
+    .on('postgres_changes',{event:'*',schema:'public',table:'votes'},()=>{
+      loadContestList();
+    })
+    .subscribe();
 }
 
 async function sbGetAllVotes() {
