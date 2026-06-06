@@ -1,13 +1,19 @@
 // ══ LOGIN / LOGOUT ══════════════════════════════════════════
-function checkLoginLockout(){
+function updateLockoutBar(){
+  const bar=document.getElementById('lockoutBar');
+  if(!bar)return;
   if(Date.now()<loginLockUntil){
     const ms=loginLockUntil-Date.now();
     const sec=Math.ceil(ms/1000);
-    const bar=document.getElementById('lockoutBar');
-    let timeStr=sec<60?`${sec} วินาที`:sec<3600?`${Math.ceil(sec/60)} นาที`:`${Math.ceil(sec/3600)} ชั่วโมง`;
-    if(bar){bar.style.display='block';bar.textContent=`⚠️ ล็อกอินผิดบ่อยเกินไป กรุณารอ ${timeStr}`;}
-    return false;
+    const timeStr=sec<60?`${sec} วินาที`:sec<3600?`${Math.ceil(sec/60)} นาที`:`${Math.ceil(sec/3600)} ชั่วโมง`;
+    bar.style.display='block';bar.textContent=`⚠️ ล็อกอินผิดบ่อยเกินไป กรุณารอ ${timeStr}`;
+  } else {
+    bar.style.display='none';
+    if(lockCountdownTimer){clearInterval(lockCountdownTimer);lockCountdownTimer=null;}
   }
+}
+function checkLoginLockout(){
+  if(Date.now()<loginLockUntil){updateLockoutBar();return false;}
   const bar=document.getElementById('lockoutBar');
   if(bar)bar.style.display='none';
   return true;
@@ -35,9 +41,13 @@ async function doLogin(){
         if(lockoutTimerId)clearTimeout(lockoutTimerId);
         lockoutTimerId=setTimeout(()=>{
           loginLockUntil=0;lockoutTimerId=null;
+          if(lockCountdownTimer){clearInterval(lockCountdownTimer);lockCountdownTimer=null;}
           const b=document.getElementById('lockoutBar');
           if(b)b.style.display='none';
         },lockMs);
+        if(lockCountdownTimer)clearInterval(lockCountdownTimer);
+        lockCountdownTimer=setInterval(updateLockoutBar,1000);
+        updateLockoutBar();
       }
       const remaining=Math.max(0,5-loginAttempts);
       showAlert('loginAlert',res.msg+(remaining<5?` (เหลือ ${remaining} ครั้ง)`:''),'error');
@@ -45,6 +55,7 @@ async function doLogin(){
     }
     loginAttempts=0;loginLockUntil=0;lockoutCount=0;
     if(lockoutTimerId){clearTimeout(lockoutTimerId);lockoutTimerId=null;}
+    if(lockCountdownTimer){clearInterval(lockCountdownTimer);lockCountdownTimer=null;}
     currentUser=res.emp;
     if(currentUser.role==='admin'){await initAdmin();setupAdminHeader();showView('admin');}
     else{await initEmployee();setupUserHeader();showView('emp');}
@@ -60,6 +71,7 @@ function doLogout(){
   userLat=null;userLng=null;userAcc=null;cameraAvailable=null;adminQRTokens=[];
   mregSelEmp=null;mregSelCp=null;wheelParticipants=[];wheelWinners=[];
   excludeWinners=false;loginAttempts=0;loginLockUntil=0;lockoutCount=0;
+  if(lockCountdownTimer){clearInterval(lockCountdownTimer);lockCountdownTimer=null;}
   if(typeof dashSearchResults!=='undefined')dashSearchResults=[];
   if(typeof dashClearSearch==='function')dashClearSearch();
   currentTab='camera';
@@ -400,6 +412,7 @@ async function doRegister(){
   if(sysSettings.QREnabled&&!qrToken){showAlert('qrAlert','กรุณายืนยัน QR Token ก่อน','warn');return;}
   if(sysSettings.LocationEnabled&&!gpsReady){showAlert('qrAlert','กรุณาขอ GPS Location ก่อน','warn');return;}
   if(!selectedCp){showAlert('qrAlert','ไม่พบข้อมูล Checkpoint','error');return;}
+  setConfirmBtn(false);
   showLoading('กำลังบันทึกข้อมูล...');
   const dist=userLat!==null?Math.round(haversine(userLat,userLng,selectedCp.lat,selectedCp.lng)):0;
   try{
@@ -419,7 +432,7 @@ async function doRegister(){
       <div class="info-cell ic-span"><div class="ic-lbl">Registration ID</div><div class="ic-val" style="font-family:var(--mono);font-size:12px">${escHtml(res.regId)}</div></div>`;
     stopScanner();stopGPSWatch();showEmpStep('estep-success');
   }catch(err){showAlert('qrAlert','เกิดข้อผิดพลาด: '+err.message,'error');}
-  finally{hideLoading();}
+  finally{hideLoading();setConfirmBtn(true);}
 }
 function resetEmpFlow(){
   stopScanner();stopGPSWatch();selectedCp=null;qrToken=null;gpsReady=false;
