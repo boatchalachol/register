@@ -131,6 +131,16 @@ function wireEventListeners() {
     ?.addEventListener('click', loadDashboard);
   document.getElementById('btnExportCSV')
     ?.addEventListener('click', exportCSV);
+  const dashSearchInput = document.getElementById('dashSearchName');
+  if(dashSearchInput){
+    dashSearchInput.addEventListener('input', () => dashSearchRegs());
+    dashSearchInput.addEventListener('focus', () => dashSearchInput.style.borderColor='var(--teal)');
+    dashSearchInput.addEventListener('blur',  () => dashSearchInput.style.borderColor='var(--border2)');
+  }
+  document.getElementById('dashSearchCp')
+    ?.addEventListener('change', () => dashSearchRegs());
+  document.getElementById('btnDashClearSearch')
+    ?.addEventListener('click', dashClearSearch);
 
   // Admin: Employees page
   document.getElementById('btnShowAddEmp')
