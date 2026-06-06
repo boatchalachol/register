@@ -8,7 +8,7 @@ async function sbCreateContest(name, desc) {
     description: sanitize(desc || ''),
     is_active: true,
     created_at: new Date().toISOString()
-  }).select().single();
+  }).select().maybeSingle();
   if (error) throw error;
   return data;
 }
