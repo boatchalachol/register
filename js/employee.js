@@ -1,9 +1,11 @@
 // ══ LOGIN / LOGOUT ══════════════════════════════════════════
 function checkLoginLockout(){
   if(Date.now()<loginLockUntil){
-    const sec=Math.ceil((loginLockUntil-Date.now())/1000);
+    const ms=loginLockUntil-Date.now();
+    const sec=Math.ceil(ms/1000);
     const bar=document.getElementById('lockoutBar');
-    if(bar){bar.style.display='block';bar.textContent=`⚠️ ล็อกอินผิดบ่อยเกินไป กรุณารอ ${sec} วินาที`;}
+    let timeStr=sec<60?`${sec} วินาที`:sec<3600?`${Math.ceil(sec/60)} นาที`:`${Math.ceil(sec/3600)} ชั่วโมง`;
+    if(bar){bar.style.display='block';bar.textContent=`⚠️ ล็อกอินผิดบ่อยเกินไป กรุณารอ ${timeStr}`;}
     return false;
   }
   const bar=document.getElementById('lockoutBar');
@@ -24,13 +26,17 @@ async function doLogin(){
     if(!res.ok){
       loginAttempts++;
       if(loginAttempts>=5){
-        loginLockUntil=Date.now()+30000;loginAttempts=0;
+        // SEC-C: exponential backoff — 30s, 2min, 10min, 1hr+
+        const tier=Math.floor((loginAttempts-5)/5);
+        const delays=[30000,120000,600000,3600000];
+        const lockMs=delays[Math.min(tier,delays.length-1)];
+        loginLockUntil=Date.now()+lockMs;loginAttempts=0;
         if(lockoutTimerId)clearTimeout(lockoutTimerId);
         lockoutTimerId=setTimeout(()=>{
           loginLockUntil=0;lockoutTimerId=null;
           const b=document.getElementById('lockoutBar');
           if(b)b.style.display='none';
-        },30000);
+        },lockMs);
       }
       const remaining=Math.max(0,5-loginAttempts);
       showAlert('loginAlert',res.msg+(remaining<5?` (เหลือ ${remaining} ครั้ง)`:''),'error');
@@ -333,7 +339,7 @@ async function requestGPS(){
       onGPSError(msgs[err.code]||'เกิดข้อผิดพลาด GPS');
       btn.disabled=false;btn.innerHTML='<i class="ti ti-antenna"></i> ลองอีกครั้ง';
     },
-    {enableHighAccuracy:true,timeout:18000,maximumAge:0}
+    {enableHighAccuracy:true,timeout:19500,maximumAge:0}
   );
   manualTimeoutId=setTimeout(()=>{
     if(!settled){
