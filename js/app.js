@@ -444,11 +444,14 @@ const pageWheelHTML = `
 
     <!-- CP Filter row -->
     <div class="wheel-filter-row">
-      <span style="font-size:12px;color:var(--text3);font-weight:500">กรอง CP:</span>
+      <span style="font-size:12px;color:var(--text3);font-weight:500">โหมด:</span>
       <button class="wheel-filter-btn wf-active" id="wfAll" data-cp-filter="all">
         <i class="ti ti-users" style="font-size:11px"></i> ทั้งหมด
       </button>
       <div id="wfCpBtns" style="display:contents"></div>
+      <button class="wheel-filter-btn" id="wfOnTime">
+        <i class="ti ti-clock" style="font-size:11px"></i> ตรงเวลา
+      </button>
       <button class="btn btn-outline btn-sm" id="btnWheelRefresh">
         <i class="ti ti-refresh"></i> รีเฟรช
       </button>
