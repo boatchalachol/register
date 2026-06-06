@@ -247,7 +247,7 @@ async function sbRegister({empId,empName,branch,position,cpId,cpName,userLat:lat
 }
 async function sbGetDashboard(){
   const{start}=bkkDayRange();
-  const safe=p=>Promise.resolve(p).catch(()=>({data:null,count:null,error:true}));
+  const safe=async q=>{try{return await q;}catch(e){return{data:null,count:null,error:e};}};
   const[totRes,todayRes,cpRes,empRes,recentRes]=await Promise.all([
     safe(db.from('registrations').select('id',{count:'exact',head:true})),
     safe(db.from('registrations').select('id',{count:'exact',head:true}).gte('registered_at',start)),
