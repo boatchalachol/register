@@ -109,7 +109,7 @@ function bkkDayRange(){
   const today=bkkDate();
   return{
     start:new Date(today+'T00:00:00+07:00').toISOString(),
-    end:new Date(today+'T23:59:59+07:00').toISOString()
+    end:new Date(today+'T23:59:59.999+07:00').toISOString()
   };
 }
 function localDtToISO(dtLocalVal){
@@ -131,8 +131,13 @@ function isValidLng(v){const n=parseFloat(v);return !isNaN(n)&&n>=-180&&n<=180;}
 function clearAllTimers(){Object.values(qrTimers).forEach(t=>clearInterval(t));qrTimers={};}
 
 // ══ SUPABASE ════════════════════════════════════════════════
+// SECURITY NOTE: PIN is currently stored as plaintext.
+// For production, move this to a Supabase Edge Function that hashes PIN with bcrypt.
 async function sbLogin(empId,pin){
-  const{data,error}=await db.from('employees').select('*').eq('id',empId).eq('pin',pin).eq('is_active',true).single();
+  const safeId=String(empId||'').trim().slice(0,50);
+  const safePin=String(pin||'').trim().slice(0,8);
+  if(!safeId||!safePin)return{ok:false,msg:'กรุณากรอกข้อมูลให้ครบ'};
+  const{data,error}=await db.from('employees').select('id,name,branch,position,role').eq('id',safeId).eq('pin',safePin).eq('is_active',true).single();
   if(error||!data)return{ok:false,msg:'รหัสพนักงานหรือ PIN ไม่ถูกต้อง'};
   return{ok:true,emp:{id:data.id,name:data.name,branch:data.branch,position:data.position,role:data.role}};
 }
@@ -183,6 +188,8 @@ async function sbValidateToken(token,cpId){
   if(data.expires_at&&new Date(data.expires_at)<new Date())return{valid:false,msg:'QR Token หมดอายุแล้ว — ติดต่อ Admin เพื่อสร้างใหม่'};
   return{valid:true};
 }
+// IMPORTANT: This client-side check alone is not sufficient.
+// Add a UNIQUE constraint in Supabase: UNIQUE(emp_id, cp_id, DATE(registered_at AT TIME ZONE 'Asia/Bangkok'))
 async function sbAlreadyRegisteredToday(empId,cpId){
   const{start,end}=bkkDayRange();
   const{data}=await db.from('registrations').select('id').eq('emp_id',empId).eq('cp_id',cpId).gte('registered_at',start).lte('registered_at',end).limit(1);
@@ -193,11 +200,11 @@ async function sbRegister({empId,empName,branch,position,cpId,cpName,userLat:lat
   branch=sanitize(branch);
   position=sanitize(position);
   note=note?String(note).trim().slice(0,500):null;
+  const settings=await sbGetSettings();
+  const qrEnabled=settings['QREnabled']!=='false';
+  const locEnabled=settings['LocationEnabled']==='true';
+  const radiusLock=settings['RadiusLockEnabled']==='true';
   if(!isManual){
-    const settings=await sbGetSettings();
-    const qrEnabled=settings['QREnabled']!=='false';
-    const locEnabled=settings['LocationEnabled']==='true';
-    const radiusLock=settings['RadiusLockEnabled']==='true';
     if(qrEnabled){
       const check=await sbValidateToken(tok,cpId);
       if(!check.valid)return{ok:false,msg:check.msg};
@@ -212,8 +219,8 @@ async function sbRegister({empId,empName,branch,position,cpId,cpName,userLat:lat
   if(await sbAlreadyRegisteredToday(empId,cpId))
     return{ok:false,msg:'ลงทะเบียนจุดนี้ไปแล้ววันนี้'};
   const ts=new Date();
-  const regId=(isManual?'MREG-':'REG-')+ts.getTime();
-  const locEnabled_store=!isManual&&(await sbGetSettings())['LocationEnabled']==='true';
+  const regId=(isManual?'MREG-':'REG-')+crypto.randomUUID().replace(/-/g,'').slice(0,12).toUpperCase();
+  const locEnabled_store=locEnabled&&!isManual;
   const row={
     reg_id:regId,emp_id:empId,emp_name:empName,branch,position,cp_id:cpId,cp_name:cpName,
     lat:locEnabled_store?lat:null,
@@ -248,6 +255,7 @@ async function sbGetDashboard(){
     recent:(recentRes.data||[]).map(r=>({
       regId:r.id,empName:r.emp_name,cpName:r.cp_name,
       ts:r.registered_at?new Date(r.registered_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'}):'—',
+      registeredAt:r.registered_at?new Date(r.registered_at).toLocaleString('th-TH',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'}):'—',
       distanceM:r.distance_m,isManual:r.is_manual
     }))
   };
@@ -255,8 +263,12 @@ async function sbGetDashboard(){
 async function sbGetTodayRegistrations(cpId){
   const{start,end}=bkkDayRange();
   let q=db.from('registrations').select('emp_id,emp_name,cp_id,cp_name,registered_at').gte('registered_at',start).lte('registered_at',end);
-  if(cpId&&cpId!=='all')q=q.eq('cp_id',cpId);
+  const isFiltered=cpId&&cpId!=='all';
+  if(isFiltered)q=q.eq('cp_id',cpId);
   const{data,error}=await q;if(error)throw error;
+  // LOGIC-04 fix: only dedup by emp_id when showing ALL checkpoints
+  // When filtered by specific CP, return all rows (including multi-register same person)
+  if(isFiltered)return data||[];
   const seen=new Set(),unique=[];
   (data||[]).forEach(r=>{if(!seen.has(r.emp_id)){seen.add(r.emp_id);unique.push(r);}});
   return unique;
@@ -331,5 +343,8 @@ async function sbSaveCheckpoints(checkpoints){
   }
   const{data:all}=await db.from('checkpoints').select('id');
   const toDelete=(all||[]).filter(r=>!ids.includes(r.id)).map(r=>r.id);
-  if(toDelete.length)await db.from('checkpoints').delete().in('id',toDelete);
+  if(toDelete.length){
+    await db.from('qr_tokens').update({is_active:false}).in('cp_id',toDelete);
+    await db.from('checkpoints').delete().in('id',toDelete);
+  }
 }
