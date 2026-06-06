@@ -27,7 +27,7 @@ let wheelParticipants=[], wheelFilterCp='all', wheelSpinning=false, wheelAngle=0
 let wheelWinners=[], confettiAnimId=null, excludeWinners=false;
 let wheelAnimFrame=null;
 // Login brute-force protection
-let loginAttempts=0, loginLockUntil=0, lockoutTimerId=null, lockoutCount=0;
+let loginAttempts=0, loginLockUntil=0, lockoutTimerId=null, lockoutCount=0, lockCountdownTimer=null;
 // Dashboard auto-refresh
 let dashRefreshTimer=null;
 
@@ -247,12 +247,13 @@ async function sbRegister({empId,empName,branch,position,cpId,cpName,userLat:lat
 }
 async function sbGetDashboard(){
   const{start}=bkkDayRange();
+  const safe=p=>p.catch(()=>({data:null,count:null,error:true}));
   const[totRes,todayRes,cpRes,empRes,recentRes]=await Promise.all([
-    db.from('registrations').select('id',{count:'exact',head:true}),
-    db.from('registrations').select('id',{count:'exact',head:true}).gte('registered_at',start),
-    db.from('checkpoints').select('id',{count:'exact',head:true}).eq('is_active',true),
-    db.from('employees').select('id',{count:'exact',head:true}).eq('is_active',true),
-    db.from('registrations').select('id,emp_name,cp_name,registered_at,distance_m,is_manual').order('registered_at',{ascending:false}).limit(10)
+    safe(db.from('registrations').select('id',{count:'exact',head:true})),
+    safe(db.from('registrations').select('id',{count:'exact',head:true}).gte('registered_at',start)),
+    safe(db.from('checkpoints').select('id',{count:'exact',head:true}).eq('is_active',true)),
+    safe(db.from('employees').select('id',{count:'exact',head:true}).eq('is_active',true)),
+    safe(db.from('registrations').select('id,emp_name,cp_name,registered_at,distance_m,is_manual').order('registered_at',{ascending:false}).limit(10))
   ]);
   return{
     total:totRes.count||0,today:todayRes.count||0,activeCp:cpRes.count||0,activeEmp:empRes.count||0,
@@ -293,20 +294,44 @@ async function sbAddEmployee({empId,name,branch,position,pin,role}){
   if(error)return{ok:false,msg:error.message};return{ok:true};
 }
 async function sbToggleEmployee(empId,active){
+  try{
+    await db.from('audit_log').insert({
+      action:active?'enable_employee':'disable_employee',emp_id:currentUser?.id||null,emp_name:currentUser?.name||null,
+      extra:JSON.stringify({targetEmpId:empId,active,changedBy:currentUser?.id||null})
+    });
+  }catch(_){}
   const{error}=await db.from('employees').update({is_active:active}).eq('id',empId);
   if(error)return{ok:false,msg:error.message};return{ok:true};
 }
 async function sbUpdateEmployee(empId,{name,branch,position,role,pin}){
   const upd={name,branch:branch||'',position:position||'',role:role||'user'};
   if(pin)upd.pin=pin;
+  try{
+    await db.from('audit_log').insert({
+      action:'update_employee',emp_id:currentUser?.id||null,emp_name:currentUser?.name||null,
+      extra:JSON.stringify({targetEmpId:empId,fields:Object.keys(upd),pinChanged:!!pin,changedBy:currentUser?.id||null})
+    });
+  }catch(_){}
   const{error}=await db.from('employees').update(upd).eq('id',empId);
   if(error)return{ok:false,msg:error.message};return{ok:true};
 }
 async function sbDeleteEmployee(empId){
+  try{
+    await db.from('audit_log').insert({
+      action:'delete_employee',emp_id:currentUser?.id||null,emp_name:currentUser?.name||null,
+      extra:JSON.stringify({targetEmpId:empId,deletedBy:currentUser?.id||null})
+    });
+  }catch(_){}
   const{error}=await db.from('employees').delete().eq('id',empId);
   if(error)return{ok:false,msg:error.message};return{ok:true};
 }
 async function sbDeleteRegistrations(empId){
+  try{
+    await db.from('audit_log').insert({
+      action:'delete_all_registrations',emp_id:currentUser?.id||null,emp_name:currentUser?.name||null,
+      extra:JSON.stringify({targetEmpId:empId,deletedBy:currentUser?.id||null})
+    });
+  }catch(_){}
   const{error}=await db.from('registrations').delete().eq('emp_id',empId);
   if(error)return{ok:false,msg:error.message};return{ok:true};
 }
