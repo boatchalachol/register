@@ -25,6 +25,8 @@ function setupAdminHeader(){
 function showAdminPage(name,btnEl){
   if(wheelAnimFrame){cancelAnimationFrame(wheelAnimFrame);wheelAnimFrame=null;}
   if(dashRefreshTimer){clearInterval(dashRefreshTimer);dashRefreshTimer=null;}
+  // unsubscribe realtime เมื่อออกจากหน้า voting
+  if(name!=='voting'&&voteRealtimeChannel){db.removeChannel(voteRealtimeChannel);voteRealtimeChannel=null;}
   document.querySelectorAll('.apage').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.htab').forEach(t=>t.classList.remove('active'));
   const page=document.getElementById('apage-'+name);if(page)page.classList.add('active');
@@ -52,6 +54,7 @@ async function loadSettingsAdmin(){
     featureFlags.qrEnabled=s.QREnabled!=='false';
     featureFlags.locationEnabled=t(s.LocationEnabled);
     featureFlags.radiusEnabled=t(s.RadiusLockEnabled);
+    featureFlags.wheelOnTime=s['WheelOnTime']||'09:00';
     const togQR=document.getElementById('togQR');
     const togLoc=document.getElementById('togLocation');
     const togRad=document.getElementById('togRadius');
@@ -63,6 +66,9 @@ async function loadSettingsAdmin(){
     const superScoreEl=document.getElementById('voteScoreSuperInput');
     if(userScoreEl)userScoreEl.value=s['VoteScoreUser']||'10';
     if(superScoreEl)superScoreEl.value=s['VoteScoreSuper']||'100';
+    // โหลดเวลากรองตรงเวลา wheel
+    const wheelOnTimeEl=document.getElementById('wheelOnTimeInput');
+    if(wheelOnTimeEl)wheelOnTimeEl.value=s['WheelOnTime']||'09:00';
   }catch(e){console.error('loadSettingsAdmin error:',e);}
 }
 async function loadQRTokens(){try{adminQRTokens=await sbGetQRTokens(true);}catch(e){adminQRTokens=[];}}
@@ -318,16 +324,20 @@ async function saveSettings(){
   const voteScoreSuperEl=document.getElementById('voteScoreSuperInput');
   const voteScoreUser=Math.max(1,Math.min(1000,parseInt(voteScoreUserEl?.value||'10')||10));
   const voteScoreSuper=Math.max(1,Math.min(1000,parseInt(voteScoreSuperEl?.value||'100')||100));
+  const wheelOnTimeEl=document.getElementById('wheelOnTimeInput');
+  const wheelOnTime=wheelOnTimeEl?.value||'09:00';
   const settings={
     QREnabled:togQR?togQR.checked:featureFlags.qrEnabled,
     LocationEnabled:togLoc?togLoc.checked:featureFlags.locationEnabled,
     RadiusLockEnabled:togRad?togRad.checked:featureFlags.radiusEnabled,
     VoteScoreUser:voteScoreUser,
-    VoteScoreSuper:voteScoreSuper
+    VoteScoreSuper:voteScoreSuper,
+    WheelOnTime:wheelOnTime
   };
   featureFlags.qrEnabled=settings.QREnabled;
   featureFlags.locationEnabled=settings.LocationEnabled;
   featureFlags.radiusEnabled=settings.RadiusLockEnabled;
+  featureFlags.wheelOnTime=wheelOnTime;
   showLoading('กำลังบันทึกการตั้งค่า...');
   try{
     await sbSaveSettings(settings);
@@ -498,9 +508,8 @@ async function initWheelPage(){
   showAlert('wheelAlert','','');excludeWinners=false;
   const btn=document.getElementById('btnExcludeWinners');
   if(btn)btn.classList.remove('active');
-  // BUG FIX: reset filter to 'all' every time page is opened
-  wheelFilterCp='all';
-  // sync UI: make sure wfAll is active and all CP buttons are inactive
+  // reset mode to 'all' every time page is opened
+  wheelMode='all';wheelFilterCp='all';
   document.querySelectorAll('.wheel-filter-btn').forEach(b=>b.classList.remove('wf-active'));
   const wfAll=document.getElementById('wfAll');
   if(wfAll)wfAll.classList.add('wf-active');
@@ -513,7 +522,7 @@ async function initWheelPage(){
       b.id='wf-'+cp.id;
       b.dataset.cpFilter=cp.id;
       b.textContent=cp.name;
-      b.addEventListener('click',()=>setWheelFilter(cp.id,b));
+      b.addEventListener('click',()=>setWheelFilter('cp',cp.id,b));
       cpBtns.appendChild(b);
     });
   }
@@ -530,12 +539,26 @@ async function initWheelPage(){
 }
 async function loadWheelData(){
   try{
-    const all=await sbGetTodayRegistrations(wheelFilterCp);
+    let all=[];
+    let modeLabel='';
+    if(wheelMode==='all'){
+      // ทั้งหมด: ทุกคนที่ลงทะเบียนวันนี้ dedup by emp_id
+      all=await sbGetTodayRegistrations('all',null);
+      modeLabel='';
+    }else if(wheelMode==='cp'){
+      // CP เฉพาะ: ทุกคนที่ลงทะเบียน CP นั้นวันนี้ (ไม่กรองเวลา)
+      all=await sbGetTodayRegistrations(wheelFilterCp,null);
+      modeLabel='';
+    }else if(wheelMode==='ontime'){
+      // ตรงเวลา: ทุกคนที่ลงทะเบียนก่อนเวลาที่กำหนด (ทุก CP, dedup)
+      all=await sbGetTodayRegistrations('all',featureFlags.wheelOnTime);
+      modeLabel=` ⏰ ก่อน ${featureFlags.wheelOnTime} น.`;
+    }
     wheelParticipants=excludeWinners?all.filter(p=>!wheelWinners.find(w=>w.emp_id===p.emp_id)):all;
     const total=all.length;
     const excluded=total-wheelParticipants.length;
     document.getElementById('wheelCount').textContent=
-      `ผู้เข้าร่วม ${wheelParticipants.length} คน${excluded?' (ตัดออก '+excluded+' คน)':''}`;
+      `ผู้เข้าร่วม ${wheelParticipants.length} คน${modeLabel}${excluded?' (ตัดออก '+excluded+' คน)':''}`;
     drawWheel();
     setBtn('btnSpin',wheelParticipants.length<1);
     if(wheelParticipants.length===0&&total>0){
@@ -545,8 +568,9 @@ async function loadWheelData(){
     }
   }catch(e){showAlert('wheelAlert','โหลดข้อมูลไม่ได้: '+e.message,'error');}
 }
-function setWheelFilter(cpId,el){
-  wheelFilterCp=cpId;
+function setWheelFilter(mode,cpId,el){
+  wheelMode=mode;
+  wheelFilterCp=cpId||'all';
   document.querySelectorAll('.wheel-filter-btn').forEach(b=>b.classList.remove('wf-active'));
   if(el)el.classList.add('wf-active');
   wheelAngle=0;
