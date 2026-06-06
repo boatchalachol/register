@@ -30,7 +30,7 @@ const overlaysHTML = `
   <div class="h-brand">
     <div class="h-logo" id="headerLogo"><i class="ti ti-map-pin"></i></div>
     <div>
-      <div class="h-title" id="headerTitle">GPS Registration</div>
+      <div class="h-title" id="headerTitle">CHALACHOL  GROUP</div>
       <div class="h-sub" id="headerSub">—</div>
     </div>
   </div>
@@ -43,8 +43,8 @@ const loginHTML = `
 <div class="view active" id="view-login">
   <div class="login-wrap">
     <div class="login-logo"><i class="ti ti-map-pin"></i></div>
-    <div class="login-title">GPS Registration</div>
-    <div class="login-sub">ลงทะเบียนเข้างาน · Supabase Edition</div>
+    <div class="login-title">CHALACHOL  GROUP</div>
+    <div class="login-sub">ลงทะเบียนเข้างาน · CHALACHOL Bangkok</div>
     <div class="card">
       <div id="loginAlert"></div>
       <div class="lockout-bar" id="lockoutBar"></div>
