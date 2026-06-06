@@ -98,23 +98,27 @@ async function refreshQRPage(){await loadQRTokens();renderQRGrid();}
 function renderQRGrid(){
   clearAllTimers();
   const grid=document.getElementById('qrGrid');if(!grid)return;
-  if(!adminQRTokens.length){
+
+  // กรองเฉพาะ QR ที่ยังไม่หมดอายุ (expires_at เป็น null หรือยังไม่ถึงเวลา)
+  const now=new Date();
+  const activeTokens=adminQRTokens.filter(t=>!t.expires_at||new Date(t.expires_at)>now);
+
+  if(!activeTokens.length){
     grid.innerHTML=`<div style="color:var(--text3);font-size:13px;padding:24px;text-align:center;grid-column:1/-1">
       <i class="ti ti-qrcode-off" style="font-size:32px;display:block;margin-bottom:10px;opacity:.4"></i>
-      ยังไม่มี QR Token<br>กดปุ่ม <strong>สร้างใหม่ทั้งหมด</strong> เพื่อสร้าง
+      ไม่มี QR Token ที่ยังใช้งานได้<br>กดปุ่ม <strong>สร้างใหม่ทั้งหมด</strong> เพื่อสร้าง
     </div>`;return;
   }
   grid.innerHTML='';
-  adminQRTokens.forEach(t=>{
+  activeTokens.forEach(t=>{
     const card=document.createElement('div');
     card.className='qr-card';card.id=`qrcard-${t.cp_id}`;
     let expHtml='';
     if(!t.expires_at){
       expHtml='<div class="qr-expires no-exp"><i class="ti ti-infinity" style="font-size:11px"></i> ไม่หมดอายุ</div>';
     }else{
-      const expDate=new Date(t.expires_at);const expired=expDate<new Date();
-      expHtml=`<div class="qr-expires ${expired?'expired':'has-exp'}" id="qrexp-${escHtml(t.cp_id)}">
-        ${expired?'❌ หมดอายุแล้ว':'⏱ <span id="qrtimer-'+escHtml(t.cp_id)+'">...</span>'}
+      expHtml=`<div class="qr-expires has-exp" id="qrexp-${escHtml(t.cp_id)}">
+        ⏱ <span id="qrtimer-${escHtml(t.cp_id)}">...</span>
       </div>`;
     }
     card.innerHTML=`
@@ -136,7 +140,7 @@ function renderQRGrid(){
     });
     const wrap=document.getElementById(`qrwrap-${t.cp_id}`);
     if(wrap){wrap.innerHTML='';try{new QRCode(wrap,{text:t.token,width:160,height:160,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});}catch(_){}}
-    if(t.expires_at){const expDate=new Date(t.expires_at);if(expDate>new Date())startCountdown(t.cp_id,expDate);}
+    if(t.expires_at){const expDate=new Date(t.expires_at);startCountdown(t.cp_id,expDate);}
   });
 }
 function startCountdown(cpId,expiryDate){
@@ -144,7 +148,26 @@ function startCountdown(cpId,expiryDate){
   const tick=()=>{
     const diff=expiryDate-Date.now();
     const expEl=document.getElementById(`qrexp-${cpId}`);if(!expEl)return;
-    if(diff<=0){clearInterval(qrTimers[cpId]);delete qrTimers[cpId];expEl.className='qr-expires expired';expEl.innerHTML='❌ หมดอายุแล้ว!';return;}
+    if(diff<=0){
+      clearInterval(qrTimers[cpId]);delete qrTimers[cpId];
+      // ซ่อน card ที่หมดอายุออกจาก grid ทันที
+      const card=document.getElementById(`qrcard-${cpId}`);
+      if(card){
+        card.style.transition='opacity 0.5s';card.style.opacity='0';
+        setTimeout(()=>{
+          card.remove();
+          // ถ้าไม่เหลือ card ให้แสดงข้อความว่าง
+          const grid=document.getElementById('qrGrid');
+          if(grid&&!grid.querySelector('.qr-card')){
+            grid.innerHTML=`<div style="color:var(--text3);font-size:13px;padding:24px;text-align:center;grid-column:1/-1">
+              <i class="ti ti-qrcode-off" style="font-size:32px;display:block;margin-bottom:10px;opacity:.4"></i>
+              ไม่มี QR Token ที่ยังใช้งานได้<br>กดปุ่ม <strong>สร้างใหม่ทั้งหมด</strong> เพื่อสร้าง
+            </div>`;
+          }
+        },500);
+      }
+      return;
+    }
     const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
     const timerEl=document.getElementById(`qrtimer-${cpId}`);
     if(timerEl)timerEl.textContent=`${h>0?h+'ช. ':''}${m}:${String(s).padStart(2,'0')}`;
