@@ -716,26 +716,109 @@ async function loadDashboard(){
     document.getElementById('statTodayDate').textContent=new Date().toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
     document.getElementById('statCp').textContent=d.activeCp??'—';
     document.getElementById('statEmp').textContent=d.activeEmp??'—';
-    const tbody=document.getElementById('recentTable');
-    const locOn=featureFlags.locationEnabled;
-    if(!d.recent.length){
-      tbody.innerHTML=`<tr><td colspan="${locOn?5:4}" style="text-align:center;color:var(--text3);padding:24px">ยังไม่มีรายการลงทะเบียนวันนี้</td></tr>`;
-    }else{
-      tbody.innerHTML='';
-      d.recent.forEach(r=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML=`<td class="name">${escHtml(r.empName||'—')}</td>
-          <td>${escHtml(r.cpName||'—')}</td>
-          <td style="font-family:var(--mono)">${escHtml(r.ts||'—')}</td>
-          <td>${r.isManual
-            ?'<span class="badge b-purple"><i class="ti ti-clipboard-check" style="font-size:10px"></i> Admin</span>'
-            :'<span class="badge b-teal"><i class="ti ti-user" style="font-size:10px"></i> ปกติ</span>'}</td>
-          ${locOn?`<td><span style="color:var(--teal);font-family:var(--mono)">${r.distanceM!=null?escHtml(String(r.distanceM))+'m':'—'}</span></td>`:''}`;
-        tbody.appendChild(tr);
+    // populate search CP dropdown
+    const cpSel=document.getElementById('dashSearchCp');
+    if(cpSel&&adminCheckpoints.length){
+      const prev=cpSel.value;
+      cpSel.innerHTML='<option value="">— ทุก Checkpoint —</option>';
+      adminCheckpoints.forEach(cp=>{
+        const opt=document.createElement('option');opt.value=cp.id;opt.textContent=cp.name;
+        if(cp.id===prev)opt.selected=true;
+        cpSel.appendChild(opt);
       });
     }
+    renderRecentTable(d.recent);
     syncSettingsUI();
   }catch(e){showAlert('dashAlert','โหลดข้อมูลไม่ได้: '+e.message,'error');}
+}
+function renderRecentTable(rows){
+  const tbody=document.getElementById('recentTable');if(!tbody)return;
+  const locOn=featureFlags.locationEnabled;
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="${locOn?6:5}" style="text-align:center;color:var(--text3);padding:24px">ยังไม่มีรายการลงทะเบียนวันนี้</td></tr>`;return;
+  }
+  tbody.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="name">${escHtml(r.empName||'—')}</td>
+      <td>${escHtml(r.cpName||'—')}</td>
+      <td style="font-family:var(--mono)">${escHtml(r.ts||'—')}</td>
+      <td>${r.isManual
+        ?'<span class="badge b-purple"><i class="ti ti-clipboard-check" style="font-size:10px"></i> Admin</span>'
+        :'<span class="badge b-teal"><i class="ti ti-user" style="font-size:10px"></i> ปกติ</span>'}</td>
+      ${locOn?`<td><span style="color:var(--teal);font-family:var(--mono)">${r.distanceM!=null?escHtml(String(r.distanceM))+'m':'—'}</span></td>`:''}
+      <td>${r.regId?`<button data-del-reg="${escHtml(r.regId)}" class="btn btn-outline btn-xs" style="color:var(--red,#f87171);border-color:var(--red,#f87171);padding:3px 7px" title="ลบรายการนี้"><i class="ti ti-trash" style="font-size:12px"></i></button>`:'—'}</td>`;
+    if(r.regId){
+      tr.querySelector(`[data-del-reg]`).addEventListener('click',ev=>confirmDeleteOneReg(ev.currentTarget.dataset.delReg,r.empName,r.ts));
+    }
+    tbody.appendChild(tr);
+  });
+}
+// ── Search registrations ─────────────────────────────────────
+let dashSearchResults=[];
+async function dashSearchRegs(){
+  const name=(document.getElementById('dashSearchName')?.value||'').trim();
+  const cpId=document.getElementById('dashSearchCp')?.value||'';
+  if(!name&&!cpId){
+    document.getElementById('dashSearchTableWrap').style.display='none';
+    document.getElementById('dashSearchCount').textContent='';
+    return;
+  }
+  try{
+    dashSearchResults=await sbSearchRegistrations({name,cpId});
+    renderSearchTable();
+  }catch(e){showAlert('dashSearchAlert','ค้นหาไม่ได้: '+e.message,'error');}
+}
+function renderSearchTable(){
+  const wrap=document.getElementById('dashSearchTableWrap');
+  const tbody=document.getElementById('dashSearchTable');
+  const countEl=document.getElementById('dashSearchCount');
+  const locOn=featureFlags.locationEnabled;
+  if(!dashSearchResults.length){
+    wrap.style.display='block';
+    tbody.innerHTML=`<tr><td colspan="${locOn?6:5}" style="text-align:center;color:var(--text3);padding:20px">ไม่พบรายการที่ค้นหา</td></tr>`;
+    countEl.textContent='ไม่พบรายการ';return;
+  }
+  wrap.style.display='block';
+  countEl.textContent=`พบ ${dashSearchResults.length} รายการ`;
+  tbody.innerHTML='';
+  dashSearchResults.forEach(r=>{
+    const ts=r.registered_at?new Date(r.registered_at).toLocaleString('th-TH',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'}):'—';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="name">${escHtml(r.emp_name||'—')}<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${escHtml(r.emp_id||'')}</div></td>
+      <td>${escHtml(r.cp_name||'—')}</td>
+      <td style="font-family:var(--mono);font-size:12px">${escHtml(ts)}</td>
+      <td>${r.is_manual
+        ?'<span class="badge b-purple"><i class="ti ti-clipboard-check" style="font-size:10px"></i> Admin</span>'
+        :'<span class="badge b-teal"><i class="ti ti-user" style="font-size:10px"></i> ปกติ</span>'}</td>
+      ${locOn?`<td><span style="color:var(--teal);font-family:var(--mono)">${r.distance_m!=null?r.distance_m+'m':'—'}</span></td>`:''}
+      <td><button data-del-reg="${escHtml(r.id)}" class="btn btn-outline btn-xs" style="color:var(--red,#f87171);border-color:var(--red,#f87171);padding:3px 7px" title="ลบรายการนี้"><i class="ti ti-trash" style="font-size:12px"></i></button></td>`;
+    tr.querySelector('[data-del-reg]').addEventListener('click',ev=>confirmDeleteOneReg(ev.currentTarget.dataset.delReg,r.emp_name,ts));
+    tbody.appendChild(tr);
+  });
+}
+function dashClearSearch(){
+  const n=document.getElementById('dashSearchName');if(n)n.value='';
+  const c=document.getElementById('dashSearchCp');if(c)c.value='';
+  document.getElementById('dashSearchTableWrap').style.display='none';
+  document.getElementById('dashSearchCount').textContent='';
+  dashSearchResults=[];
+}
+async function confirmDeleteOneReg(regId,empName,ts){
+  if(!confirm(`ลบรายการลงทะเบียนของ "${empName||regId}" เวลา ${ts||''}?\nไม่สามารถกู้คืนได้`))return;
+  showLoading('กำลังลบ...');
+  try{
+    const r=await sbDeleteOneRegistration(regId);
+    hideLoading();
+    if(!r.ok)throw new Error(r.msg);
+    showAlert('dashAlert',`✅ ลบรายการลงทะเบียนสำเร็จ`,'success');
+    setTimeout(()=>showAlert('dashAlert','',''),3000);
+    await loadDashboard();
+    if(dashSearchResults.length){
+      dashSearchResults=dashSearchResults.filter(x=>x.id!==regId);
+      renderSearchTable();
+    }
+  }catch(e){hideLoading();showAlert('dashAlert','ลบไม่ได้: '+e.message,'error');}
 }
 async function exportCSV(){
   showLoading('กำลัง Export...');
