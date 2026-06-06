@@ -216,6 +216,9 @@ async function sbRegister({empId,empName,branch,position,cpId,cpName,userLat:lat
         return{ok:false,msg:`คุณอยู่ห่าง ${Math.round(distanceM)} ม. (สูงสุด ${cp.max_radius} ม.)`};
     }
   }
+  // SEC-B: reject if employee account is disabled
+  const{data:empCheck}=await db.from('employees').select('is_active').eq('id',empId).single();
+  if(!empCheck?.is_active)return{ok:false,msg:'บัญชีพนักงานถูกปิดใช้งาน'};
   if(await sbAlreadyRegisteredToday(empId,cpId))
     return{ok:false,msg:'ลงทะเบียนจุดนี้ไปแล้ววันนี้'};
   const ts=new Date();
@@ -236,7 +239,8 @@ async function sbRegister({empId,empName,branch,position,cpId,cpName,userLat:lat
       action:isManual?'manual_register':'register',emp_id:empId,emp_name:empName,
       extra:JSON.stringify(isManual
         ?{cpId,cpName,regId,isManual:true,adminId,note}
-        :{cpId,cpName,distanceM:Math.round(distanceM||0),regId})
+        :{cpId,cpName,distanceM:Math.round(distanceM||0),regId,
+          ...(tok==='BYPASS'?{bypass_reason:'QR disabled by admin'}:{})})
     });
   }catch(_){}
   return{ok:true,regId,ts:ts.toISOString(),distanceM:Math.round(distanceM||0)};
@@ -313,6 +317,15 @@ async function sbSearchRegistrations({name,cpId}){
   const{data,error}=await q;if(error)throw error;return data||[];
 }
 async function sbDeleteOneRegistration(regId){
+  // SEC-D: audit log before destructive action
+  try{
+    await db.from('audit_log').insert({
+      action:'delete_registration',
+      emp_id:currentUser?.id||null,
+      emp_name:currentUser?.name||null,
+      extra:JSON.stringify({regId,deletedBy:currentUser?.id||null})
+    });
+  }catch(_){}
   const{error}=await db.from('registrations').delete().eq('id',regId);
   if(error)return{ok:false,msg:error.message};return{ok:true};
 }
