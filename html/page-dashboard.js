@@ -45,6 +45,41 @@ export const pageDashboardHTML = /* html */`
       </button>
     </div>
 
+    <!-- Search registrations section -->
+    <div class="card-title" style="font-size:15px;margin:18px 0 12px">
+      <i class="ti ti-search" style="color:var(--teal)"></i> ค้นหาพนักงานที่ลงทะเบียน
+    </div>
+    <div id="dashSearchBox" style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:10px">
+      <input type="text" id="dashSearchName" placeholder="ค้นหาชื่อ / รหัสพนักงาน" maxlength="80"
+        style="background:var(--bg3,#161b27);border:1px solid var(--border2,#2a3245);border-radius:8px;color:var(--text,#e2e8f0);padding:8px 12px;font-size:13px;font-family:var(--font);outline:none;transition:border .2s"
+        oninput="dashSearchRegs()" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--border2)'">
+      <select id="dashSearchCp"
+        style="background:var(--bg3,#161b27);border:1px solid var(--border2,#2a3245);border-radius:8px;color:var(--text2,#94a3b8);padding:8px 12px;font-size:13px;font-family:var(--font);outline:none"
+        onchange="dashSearchRegs()">
+        <option value="">— ทุก Checkpoint —</option>
+      </select>
+      <button class="btn btn-outline btn-sm" onclick="dashClearSearch()" title="ล้างการค้นหา">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <div id="dashSearchAlert"></div>
+    <div class="table-wrap" id="dashSearchTableWrap" style="display:none;margin-bottom:20px">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px" id="dashSearchCount"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>ชื่อพนักงาน</th>
+            <th>Checkpoint</th>
+            <th>เวลา</th>
+            <th>ประเภท</th>
+            <th id="thDistSearch" style="display:none">ระยะ (ม.)</th>
+            <th style="width:60px">ลบ</th>
+          </tr>
+        </thead>
+        <tbody id="dashSearchTable"></tbody>
+      </table>
+    </div>
+
     <!-- Recent registrations table -->
     <div class="card-title" style="font-size:15px;margin-bottom:14px">
       <i class="ti ti-list" style="color:var(--teal)"></i> รายการล่าสุด (10 รายการ)
@@ -58,11 +93,12 @@ export const pageDashboardHTML = /* html */`
             <th>เวลา</th>
             <th>ประเภท</th>
             <th id="thDist" style="display:none">ระยะ (ม.)</th>
+            <th style="width:60px">ลบ</th>
           </tr>
         </thead>
         <tbody id="recentTable">
           <tr>
-            <td colspan="5" style="text-align:center;color:var(--text3);padding:20px">
+            <td colspan="6" style="text-align:center;color:var(--text3);padding:20px">
               ยังไม่มีข้อมูล
             </td>
           </tr>
