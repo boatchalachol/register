@@ -9,7 +9,7 @@ export const pageEmployeesHTML = /* html */`
     <div class="card-title">
       <i class="ti ti-users" style="color:var(--blue)"></i> จัดการพนักงาน
     </div>
-    <div class="card-sub">เพิ่ม แก้ไข หรือปิดใช้งานบัญชีพนักงาน</div>
+    <div class="card-sub">เพิ่ม แก้ไข ลบ หรือปิดใช้งานบัญชีพนักงาน</div>
     <div id="empAlert"></div>
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-sm" id="btnShowAddEmp">
