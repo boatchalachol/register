@@ -75,6 +75,43 @@ export const pageSettingsHTML = /* html */`
     </button>
 
     <div class="divider"></div>
+
+    <!-- Vote Score Settings -->
+    <p class="section-head"><i class="ti ti-trophy"></i> ตั้งค่าคะแนนโหวต</p>
+    <div class="toggle-row" style="display:block;padding:16px">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:14px">กำหนดคะแนนสูงสุดที่แต่ละ Role ให้ได้ต่อการโหวต 1 ครั้ง</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label for="voteScoreUserInput" style="font-size:12px;font-weight:600;color:var(--teal);display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <i class="ti ti-user"></i> User — คะแนนสูงสุด
+          </label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="voteScoreUserInput" min="1" max="100" value="10" step="1"
+              style="flex:1;padding:8px 10px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:8px;color:var(--text1);font-size:15px;font-weight:700;font-family:var(--mono)"
+              aria-label="คะแนนสูงสุด User">
+            <span style="font-size:12px;color:var(--text3)">คะแนน</span>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">ช่วง: 1 – ค่านี้ (ทีละ 1)</div>
+        </div>
+        <div>
+          <label for="voteScoreSuperInput" style="font-size:12px;font-weight:600;color:var(--purple,#9b6dff);display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <i class="ti ti-star"></i> Super User — คะแนนสูงสุด
+          </label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="voteScoreSuperInput" min="10" max="1000" value="100" step="5"
+              style="flex:1;padding:8px 10px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:8px;color:var(--text1);font-size:15px;font-weight:700;font-family:var(--mono)"
+              aria-label="คะแนนสูงสุด Super User">
+            <span style="font-size:12px;color:var(--text3)">คะแนน</span>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">ช่วง: 10 – ค่านี้ (ทีละ 5 หรือ 10)</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;padding:10px 12px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:8px;font-size:12px;color:var(--amber)">
+        <i class="ti ti-info-circle"></i> ตัวอย่าง: Super User = <strong>5</strong> → ให้ได้ 5, 10, 15 ... ไม่เกิน 5 คะแนน (บันทึกพร้อมกับ Checkpoints ด้านบน)
+      </div>
+    </div>
+
+    <div class="divider"></div>
     <button class="btn btn-amber" id="btnSaveSettings">
       <i class="ti ti-device-floppy"></i> บันทึกการตั้งค่าทั้งหมด
     </button>
