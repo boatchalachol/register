@@ -758,7 +758,7 @@ async function exportCSV(){
 function renderEmployeeTable(){
   const tbody=document.getElementById('empTableBody');if(!tbody)return;
   if(!adminEmployees.length){
-    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">ยังไม่มีข้อมูลพนักงาน</td></tr>';return;
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px">ยังไม่มีข้อมูลพนักงาน</td></tr>';return;
   }
   tbody.innerHTML='';
   adminEmployees.forEach(e=>{
@@ -768,14 +768,25 @@ function renderEmployeeTable(){
       <td>${escHtml(e.branch||'—')}</td>
       <td><span class="badge ${e.role==='admin'?'b-amber':'b-blue'}">${escHtml(e.role||'user')}</span></td>
       <td><span class="badge ${e.is_active?'b-teal':'b-gray'}">${e.is_active?'Active':'Inactive'}</span></td>
-      <td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
         <button data-toggle-emp="${escHtml(e.id)}" data-emp-active="${!e.is_active}" class="btn btn-outline btn-xs">
           ${e.is_active?'<i class="ti ti-user-off"></i> ปิด':'<i class="ti ti-user-check"></i> เปิด'}
         </button>
+        <button data-edit-emp="${escHtml(e.id)}" class="btn btn-outline btn-xs" style="color:var(--amber);border-color:var(--amber)">
+          <i class="ti ti-pencil"></i> แก้ไข
+        </button>
+        <button data-delete-emp="${escHtml(e.id)}" data-delete-name="${escHtml(e.name)}" class="btn btn-outline btn-xs" style="color:var(--red,#f87171);border-color:var(--red,#f87171)">
+          <i class="ti ti-trash"></i> ลบ
+        </button>
       </td>`;
     tr.querySelector('[data-toggle-emp]').addEventListener('click',ev=>{
-      const btn=ev.currentTarget;
-      toggleEmpActive(btn.dataset.toggleEmp,btn.dataset.empActive==='true');
+      const btn=ev.currentTarget;toggleEmpActive(btn.dataset.toggleEmp,btn.dataset.empActive==='true');
+    });
+    tr.querySelector('[data-edit-emp]').addEventListener('click',ev=>{
+      openEditEmpModal(ev.currentTarget.dataset.editEmp);
+    });
+    tr.querySelector('[data-delete-emp]').addEventListener('click',ev=>{
+      openDeleteEmpModal(ev.currentTarget.dataset.deleteEmp,ev.currentTarget.dataset.deleteName);
     });
     tbody.appendChild(tr);
   });
@@ -787,6 +798,131 @@ async function toggleEmpActive(empId,active){
     await loadEmployees();renderEmployeeTable();
   }catch(e){hideLoading();showAlert('empAlert','อัพเดตไม่ได้: '+e.message,'error');}
 }
+
+// ── Edit Employee Modal ───────────────────────────────────────
+function openEditEmpModal(empId){
+  const emp=adminEmployees.find(e=>e.id===empId);if(!emp)return;
+  // สร้าง modal ถ้ายังไม่มี
+  let modal=document.getElementById('editEmpModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='editEmpModal';
+    modal.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:16px';
+    modal.innerHTML=`<div style="background:var(--surface,#1e2330);border-radius:16px;padding:24px;width:100%;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <i class="ti ti-pencil" style="color:var(--amber)"></i> แก้ไขพนักงาน
+        <span id="editEmpIdLabel" style="font-family:var(--mono);font-size:12px;color:var(--text3);margin-left:4px"></span>
+      </div>
+      <div id="editEmpAlert"></div>
+      <div class="grid2" style="gap:12px">
+        <div class="field"><label>ชื่อ-นามสกุล *</label><input type="text" id="editEmpName" maxlength="100"></div>
+        <div class="field"><label>แผนก</label><input type="text" id="editEmpBranch" maxlength="60"></div>
+        <div class="field"><label>ตำแหน่ง</label><input type="text" id="editEmpPosition" maxlength="60"></div>
+        <div class="field"><label>Role</label>
+          <select id="editEmpRole">
+            <option value="user">user — พนักงานทั่วไป</option>
+            <option value="admin">admin — ผู้ดูแลระบบ</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column:1/-1"><label>PIN ใหม่ (เว้นว่าง = ไม่เปลี่ยน)</label>
+          <input type="password" id="editEmpPin" placeholder="••••" maxlength="8" inputmode="numeric">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn" id="btnSaveEditEmp"><i class="ti ti-check"></i> บันทึก</button>
+        <button class="btn btn-outline" id="btnCancelEditEmp"><i class="ti ti-x"></i> ยกเลิก</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('btnCancelEditEmp').addEventListener('click',()=>modal.remove());
+    modal.addEventListener('click',ev=>{if(ev.target===modal)modal.remove();});
+    document.getElementById('btnSaveEditEmp').addEventListener('click',saveEditEmployee);
+  }
+  // เติมข้อมูล
+  modal.dataset.empId=empId;
+  document.getElementById('editEmpIdLabel').textContent=`(${empId})`;
+  document.getElementById('editEmpName').value=emp.name||'';
+  document.getElementById('editEmpBranch').value=emp.branch||'';
+  document.getElementById('editEmpPosition').value=emp.position||'';
+  document.getElementById('editEmpRole').value=emp.role||'user';
+  document.getElementById('editEmpPin').value='';
+  document.getElementById('editEmpAlert').innerHTML='';
+  modal.style.display='flex';
+}
+async function saveEditEmployee(){
+  const modal=document.getElementById('editEmpModal');if(!modal)return;
+  const empId=modal.dataset.empId;
+  const name=sanitize(document.getElementById('editEmpName').value.trim());
+  const branch=sanitize(document.getElementById('editEmpBranch').value.trim());
+  const position=sanitize(document.getElementById('editEmpPosition').value.trim());
+  const role=document.getElementById('editEmpRole').value;
+  const pin=document.getElementById('editEmpPin').value.trim();
+  if(!name){showAlert('editEmpAlert','กรุณากรอกชื่อ','warn');return;}
+  if(pin&&!/^\d{4,8}$/.test(pin)){showAlert('editEmpAlert','PIN ต้องเป็นตัวเลข 4-8 หลัก','warn');return;}
+  showLoading('กำลังบันทึก...');
+  try{
+    const res=await sbUpdateEmployee(empId,{name,branch,position,role,pin:pin||null});
+    hideLoading();
+    if(!res.ok)throw new Error(res.msg);
+    modal.remove();
+    showAlert('empAlert',`✅ แก้ไขข้อมูล "${name}" สำเร็จ`,'success');
+    await loadEmployees();renderEmployeeTable();
+  }catch(e){hideLoading();showAlert('editEmpAlert','บันทึกไม่ได้: '+e.message,'error');}
+}
+
+// ── Delete Employee Modal ─────────────────────────────────────
+function openDeleteEmpModal(empId,empName){
+  let modal=document.getElementById('deleteEmpModal');
+  if(modal)modal.remove();
+  modal=document.createElement('div');
+  modal.id='deleteEmpModal';
+  modal.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:16px';
+  modal.innerHTML=`<div style="background:var(--surface,#1e2330);border-radius:16px;padding:24px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+    <div style="font-size:16px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+      <i class="ti ti-trash" style="color:#f87171"></i> ลบพนักงาน
+    </div>
+    <p style="color:var(--text2,#94a3b8);font-size:14px;margin-bottom:16px">
+      คุณต้องการลบ <strong style="color:var(--text1,#e2e8f0)">${escHtml(empName)}</strong> (${escHtml(empId)}) ออกจากระบบ?
+    </p>
+    <div id="deleteEmpAlert"></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:16px;cursor:pointer;user-select:none">
+      <input type="checkbox" id="chkDeleteRegs" style="width:16px;height:16px;accent-color:#f87171">
+      <span>ลบประวัติลงทะเบียนทั้งหมดของพนักงานคนนี้ด้วย</span>
+    </label>
+    <div style="display:flex;gap:10px">
+      <button class="btn" id="btnConfirmDeleteEmp" style="background:#f87171;border-color:#f87171;color:#fff">
+        <i class="ti ti-trash"></i> ยืนยันลบ
+      </button>
+      <button class="btn btn-outline" id="btnCancelDeleteEmp"><i class="ti ti-x"></i> ยกเลิก</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.dataset.empId=empId;
+  modal.dataset.empName=empName;
+  document.getElementById('btnCancelDeleteEmp').addEventListener('click',()=>modal.remove());
+  modal.addEventListener('click',ev=>{if(ev.target===modal)modal.remove();});
+  document.getElementById('btnConfirmDeleteEmp').addEventListener('click',confirmDeleteEmployee);
+}
+async function confirmDeleteEmployee(){
+  const modal=document.getElementById('deleteEmpModal');if(!modal)return;
+  const empId=modal.dataset.empId;
+  const empName=modal.dataset.empName;
+  const deleteRegs=document.getElementById('chkDeleteRegs')?.checked;
+  showLoading('กำลังลบ...');
+  try{
+    if(deleteRegs){
+      const r=await sbDeleteRegistrations(empId);
+      if(!r.ok)throw new Error('ลบประวัติไม่ได้: '+r.msg);
+    }
+    const r2=await sbDeleteEmployee(empId);
+    hideLoading();
+    if(!r2.ok)throw new Error(r2.msg);
+    modal.remove();
+    showAlert('empAlert',`✅ ลบพนักงาน "${empName}" สำเร็จ${deleteRegs?' พร้อมประวัติลงทะเบียน':''}`,'success');
+    await loadEmployees();renderEmployeeTable();
+  }catch(e){hideLoading();showAlert('deleteEmpAlert','ลบไม่ได้: '+e.message,'error');}
+}
+
 function showAddEmpForm(){
   const f=document.getElementById('addEmpForm');
   f.style.display='block';
