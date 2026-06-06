@@ -241,12 +241,12 @@ async function sbGetDashboard(){
     db.from('registrations').select('id',{count:'exact',head:true}).gte('registered_at',start),
     db.from('checkpoints').select('id',{count:'exact',head:true}).eq('is_active',true),
     db.from('employees').select('id',{count:'exact',head:true}).eq('is_active',true),
-    db.from('registrations').select('emp_name,cp_name,registered_at,distance_m,is_manual').order('registered_at',{ascending:false}).limit(10)
+    db.from('registrations').select('id,emp_name,cp_name,registered_at,distance_m,is_manual').order('registered_at',{ascending:false}).limit(10)
   ]);
   return{
     total:totRes.count||0,today:todayRes.count||0,activeCp:cpRes.count||0,activeEmp:empRes.count||0,
     recent:(recentRes.data||[]).map(r=>({
-      empName:r.emp_name,cpName:r.cp_name,
+      regId:r.id,empName:r.emp_name,cpName:r.cp_name,
       ts:r.registered_at?new Date(r.registered_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'}):'—',
       distanceM:r.distance_m,isManual:r.is_manual
     }))
@@ -292,6 +292,16 @@ async function sbDeleteEmployee(empId){
 }
 async function sbDeleteRegistrations(empId){
   const{error}=await db.from('registrations').delete().eq('emp_id',empId);
+  if(error)return{ok:false,msg:error.message};return{ok:true};
+}
+async function sbSearchRegistrations({name,cpId}){
+  let q=db.from('registrations').select('id,emp_id,emp_name,cp_id,cp_name,registered_at,distance_m,is_manual').order('registered_at',{ascending:false}).limit(200);
+  if(name){const n=name.trim();q=q.or(`emp_name.ilike.%${n}%,emp_id.ilike.%${n}%`);}
+  if(cpId)q=q.eq('cp_id',cpId);
+  const{data,error}=await q;if(error)throw error;return data||[];
+}
+async function sbDeleteOneRegistration(regId){
+  const{error}=await db.from('registrations').delete().eq('id',regId);
   if(error)return{ok:false,msg:error.message};return{ok:true};
 }
 // ── Winners ──────────────────────────────────────────────────
