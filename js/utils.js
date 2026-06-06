@@ -1,7 +1,3 @@
-
-// ═══════════════════════════════════════════════════════════
-//  CONFIG
-// ═══════════════════════════════════════════════════════════
 const SUPABASE_URL  = "https://zqsdmsgnqyyxqozuyapr.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpxc2Rtc2ducXl5eHFvenV5YXByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTMwMTgsImV4cCI6MjA5NjI2OTAxOH0.p8Z3ygD3gv2xzPcakXok2LoYIfs5Ed70aSPDHOPz7ck";
 const CONFIG_READY = !SUPABASE_URL.includes("YOUR_") && !SUPABASE_ANON.includes("YOUR_");
@@ -284,6 +280,26 @@ async function sbToggleEmployee(empId,active){
   const{error}=await db.from('employees').update({is_active:active}).eq('id',empId);
   if(error)return{ok:false,msg:error.message};return{ok:true};
 }
+// ── Winners ──────────────────────────────────────────────────
+async function sbGetTodayWinners(){
+  const{start,end}=bkkDayRange();
+  const{data,error}=await db.from('winners').select('*').gte('won_at',start).lte('won_at',end).order('won_at',{ascending:false});
+  if(error)throw error;return data||[];
+}
+async function sbSaveWinner(winner){
+  const{error}=await db.from('winners').insert({
+    emp_id:winner.emp_id,emp_name:winner.emp_name,
+    cp_id:winner.cp_id||null,cp_name:winner.cp_name||null,
+    won_at:new Date().toISOString()
+  });
+  if(error)return{ok:false,msg:error.message};return{ok:true};
+}
+async function sbClearTodayWinners(){
+  const{start,end}=bkkDayRange();
+  const{error}=await db.from('winners').delete().gte('won_at',start).lte('won_at',end);
+  if(error)return{ok:false,msg:error.message};return{ok:true};
+}
+
 async function sbSaveCheckpoints(checkpoints){
   const ids=checkpoints.map(c=>c.id);
   for(const cp of checkpoints){
