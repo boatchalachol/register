@@ -57,7 +57,17 @@ async function doLogin(){
     if(lockCountdownTimer){clearInterval(lockCountdownTimer);lockCountdownTimer=null;}
     currentUser=res.emp;
     if(currentUser.role==='admin'){await initAdmin();setupAdminHeader();showView('admin');}
-    else if(currentUser.role==='superuser'||currentUser.role==='user'){await initVoteView();setupVoteHeader();showView('vote');}
+    else if(currentUser.role==='superuser'||currentUser.role==='user'){
+      // ตรวจสอบว่าลงทะเบียนวันนี้แล้วหรือยัง
+      const alreadyReg=await sbCheckUserRegisteredToday(currentUser.id);
+      if(alreadyReg){
+        // ลงทะเบียนแล้ว → ไปหน้าโหวตได้เลย
+        await initVoteView();setupVoteHeader();showView('vote');
+      } else {
+        // ยังไม่ลงทะเบียน → ไปลงทะเบียนก่อน แล้วค่อยไปโหวต
+        await initEmployee();setupUserHeader();showView('emp');
+      }
+    }
     else{await initEmployee();setupUserHeader();showView('emp');}
   }catch(err){showAlert('loginAlert','เชื่อมต่อ Supabase ไม่ได้: '+err.message,'error');}
   finally{hideLoading();setBtn('btnLogin',false,'<i class="ti ti-login"></i> <span>เข้าสู่ระบบ</span>');}
@@ -432,6 +442,12 @@ async function doRegister(){
       <div class="info-cell"><div class="ic-lbl">ระยะห่าง</div><div class="ic-val teal">${res.distanceM} ม.</div></div>
       <div class="info-cell ic-span"><div class="ic-lbl">Registration ID</div><div class="ic-val" style="font-family:var(--mono);font-size:12px">${escHtml(res.regId)}</div></div>`;
     stopScanner();stopGPSWatch();showEmpStep('estep-success');
+    // user/superuser → ไปหน้าโหวตอัตโนมัติหลังลงทะเบียนสำเร็จ
+    if(currentUser.role==='user'||currentUser.role==='superuser'){
+      setTimeout(async()=>{
+        await initVoteView();setupVoteHeader();showView('vote');
+      },2500);
+    }
   }catch(err){showAlert('qrAlert','เกิดข้อผิดพลาด: '+err.message,'error');}
   finally{hideLoading();setConfirmBtn(true);}
 }
