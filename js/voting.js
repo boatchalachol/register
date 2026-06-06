@@ -320,6 +320,7 @@ async function openVoteScore(contest) {
   const voteSettings = await sbGetSettings();
   const userVoteScore  = parseInt(voteSettings['VoteScoreUser']  || '10');
   const superVoteScore = parseInt(voteSettings['VoteScoreSuper'] || '100');
+  const max = isSuper ? superVoteScore : userVoteScore;
   // สร้าง 10 ระดับคะแนน: step=max/10 เสมอ → 10,20,...,100 (ถ้า max=100)
   const levels = 10;
   const step = Math.ceil(max / levels);
