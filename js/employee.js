@@ -53,6 +53,8 @@ function doLogout(){
   userLat=null;userLng=null;userAcc=null;cameraAvailable=null;adminQRTokens=[];
   mregSelEmp=null;mregSelCp=null;wheelParticipants=[];wheelWinners=[];
   excludeWinners=false;loginAttempts=0;loginLockUntil=0;
+  if(typeof dashSearchResults!=='undefined')dashSearchResults=[];
+  if(typeof dashClearSearch==='function')dashClearSearch();
   currentTab='camera';
   document.getElementById('mainHeader').style.display='none';
   document.getElementById('headerRight').innerHTML='';
@@ -316,7 +318,7 @@ async function requestGPS(){
   gpsWatchId=navigator.geolocation.watchPosition(
     pos=>{
       if(settled)return;
-      if(pos.coords.accuracy>200)return;
+      if(pos.coords.accuracy>80)return;
       settled=true;
       if(manualTimeoutId){clearTimeout(manualTimeoutId);manualTimeoutId=null;}
       stopGPSWatch();
@@ -348,6 +350,7 @@ function stopGPSWatch(){
   }
 }
 function onGPSSuccess(lat,lng,acc){
+  if(!selectedCp){stopGPSWatch();return;}
   userLat=lat;userLng=lng;userAcc=acc;
   const dist=haversine(lat,lng,selectedCp.lat,selectedCp.lng);
   const maxR=selectedCp.max_radius||500,inZone=dist<=maxR;
