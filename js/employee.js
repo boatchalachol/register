@@ -57,7 +57,11 @@ async function doLogin(){
     if(lockCountdownTimer){clearInterval(lockCountdownTimer);lockCountdownTimer=null;}
     currentUser=res.emp;
     if(currentUser.role==='admin'){await initAdmin();setupAdminHeader();showView('admin');}
-    else if(currentUser.role==='superuser'||currentUser.role==='user'){
+    else if(currentUser.role==='superuser'){
+      // superuser ไม่ต้องลงทะเบียน → เข้าหน้าโหวตทันที
+      await initVoteView();setupVoteHeader();showView('vote');
+    }
+    else if(currentUser.role==='user'){
       // ตรวจสอบว่าลงทะเบียนวันนี้แล้วหรือยัง
       const alreadyReg=await sbCheckUserRegisteredToday(currentUser.id);
       if(alreadyReg){
@@ -442,8 +446,9 @@ async function doRegister(){
       <div class="info-cell"><div class="ic-lbl">ระยะห่าง</div><div class="ic-val teal">${res.distanceM} ม.</div></div>
       <div class="info-cell ic-span"><div class="ic-lbl">Registration ID</div><div class="ic-val" style="font-family:var(--mono);font-size:12px">${escHtml(res.regId)}</div></div>`;
     stopScanner();stopGPSWatch();showEmpStep('estep-success');
-    // คนที่มีสิทธิ์โหวต (user/superuser) → เด้งไปหน้าโหวตทันที พร้อม countdown bar
-    if(currentUser.role==='user'||currentUser.role==='superuser'){
+    // user ที่ลงทะเบียนเสร็จ → เด้งไปหน้าโหวตทันที พร้อม countdown bar
+    // (superuser ไม่ผ่านหน้านี้ เพราะเข้าหน้าโหวตโดยตรงตั้งแต่ login)
+    if(currentUser.role==='user'){
       const bar=document.getElementById('voteRedirectBar');
       const barFill=document.getElementById('voteCountdownBar');
       if(bar){bar.style.display='block';}
