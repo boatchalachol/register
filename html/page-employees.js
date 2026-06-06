@@ -1,6 +1,3 @@
-// html/page-employees.js — Admin: Employee management page
-export const pageEmployeesHTML = /* html */`
-
 <!-- ── Employees Page ───────────────────────────────────── -->
 <div class="apage" id="apage-employees">
 
@@ -70,8 +67,10 @@ export const pageEmployeesHTML = /* html */`
       <div class="field">
         <label for="newEmpRole">Role</label>
         <select id="newEmpRole">
-          <option value="user">user — พนักงานทั่วไป</option>
+          <option value="user">user — โหวตคะแนน 1-10</option>
+          <option value="superuser">superuser — โหวตคะแนน 10-100</option>
           <option value="admin">admin — ผู้ดูแลระบบ</option>
+          <option value="employee">employee — ลงทะเบียนเข้างาน</option>
         </select>
       </div>
     </div>
