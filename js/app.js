@@ -757,7 +757,8 @@ const pageEmployeesHTML = `
     <div class="card-title">
       <i class="ti ti-user-plus" style="color:var(--teal)"></i> เพิ่มพนักงานใหม่
     </div>
-    <div class="grid2">
+    <div id="addEmpAlert"></div>
+    <div class="grid2" style="gap:12px">
       <div class="field">
         <label for="newEmpId">รหัสพนักงาน *</label>
         <input type="text" id="newEmpId" placeholder="เช่น 5220"
@@ -783,14 +784,14 @@ const pageEmployeesHTML = `
       <div class="field">
         <label for="newEmpRole">Role</label>
         <select id="newEmpRole">
-          <option value="user">user — โหวตคะแนน 1-10</option>
-          <option value="superuser">superuser — โหวตคะแนน 10-100</option>
+          <option value="user">user — พนักงานทั่วไป</option>
+          <option value="superuser">superuser — ผู้โหวตพิเศษ</option>
           <option value="admin">admin — ผู้ดูแลระบบ</option>
           <option value="employee">employee — ลงทะเบียนเข้างาน</option>
         </select>
       </div>
     </div>
-    <div style="display:flex;gap:10px">
+    <div style="display:flex;gap:10px;margin-top:4px">
       <button class="btn" id="btnSaveNewEmployee">
         <i class="ti ti-check"></i> บันทึก
       </button>
