@@ -105,7 +105,9 @@ async function loadContestList() {
   const wrap = document.getElementById('contestListWrap');
   if (!wrap) return;
   try {
-    const [contests, allVotes] = await Promise.all([sbGetContests(false), sbGetAllVotes()]);
+    const [contests, allVotes, voteSettings] = await Promise.all([sbGetContests(false), sbGetAllVotes(), sbGetSettings()]);
+    const _userMax = parseInt(voteSettings['VoteScoreUser'] || '10');
+    const _superMax = parseInt(voteSettings['VoteScoreSuper'] || '100');
     const votesByContest = {};
     allVotes.forEach(v => {
       if (!votesByContest[v.contest_id]) votesByContest[v.contest_id] = [];
@@ -144,12 +146,12 @@ async function loadContestList() {
         <!-- Score summary -->
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
           <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:4px">User (1-10)</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px">User (1-${_userMax})</div>
             <div style="font-size:20px;font-weight:700;color:var(--teal)">${userTotal}</div>
             <div style="font-size:10px;color:var(--text3)">${userVotes.length} โหวต</div>
           </div>
           <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Super (10-100)</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Super (10-${_superMax})</div>
             <div style="font-size:20px;font-weight:700;color:var(--purple)">${superTotal}</div>
             <div style="font-size:10px;color:var(--text3)">${superVotes.length} โหวต</div>
           </div>
@@ -307,21 +309,25 @@ async function renderVoteContestList() {
   }
 }
 
-function openVoteScore(contest) {
+async function openVoteScore(contest) {
   voteSelectedContest = contest;
   voteSelectedScore = null;
   document.getElementById('voteContestTitle').textContent = contest.name;
   document.getElementById('voteContestDesc').textContent = contest.description || '';
 
   const isSuper = currentUser.role === 'superuser';
-  const min = isSuper ? 10 : 1;
-  const max = isSuper ? 100 : 10;
-  const step = isSuper ? 10 : 1;
+  // ดึง vote weight จาก settings (Admin ตั้งค่าได้)
+  const voteSettings = await sbGetSettings();
+  const userVoteScore  = parseInt(voteSettings['VoteScoreUser']  || '10');
+  const superVoteScore = parseInt(voteSettings['VoteScoreSuper'] || '100');
+  const min  = isSuper ? Math.min(10, superVoteScore) : 1;
+  const max  = isSuper ? superVoteScore : userVoteScore;
+  const step = isSuper ? (superVoteScore <= 50 ? 5 : 10) : 1;
 
   const label = document.getElementById('voteRangeLabel');
   if (label) label.innerHTML = isSuper
-    ? '<i class="ti ti-star" style="color:var(--amber)"></i> <strong>Super User</strong>: ให้คะแนนได้ <strong>10 – 100</strong> คะแนน (ทีละ 10)'
-    : '<i class="ti ti-user" style="color:var(--teal)"></i> <strong>User</strong>: ให้คะแนนได้ <strong>1 – 10</strong> คะแนน';
+    ? `<i class="ti ti-star" style="color:var(--amber)"></i> <strong>Super User</strong>: ให้คะแนนได้ <strong>${min} – ${max}</strong> คะแนน (ทีละ ${step})`
+    : `<i class="ti ti-user" style="color:var(--teal)"></i> <strong>User</strong>: ให้คะแนนได้ <strong>1 – ${max}</strong> คะแนน`;
 
   const scoreDisp = document.getElementById('voteScoreDisplay');
   if (scoreDisp) scoreDisp.textContent = '-';
