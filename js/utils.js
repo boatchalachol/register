@@ -132,13 +132,23 @@ function isValidLng(v){const n=parseFloat(v);return !isNaN(n)&&n>=-180&&n<=180;}
 function clearAllTimers(){Object.values(qrTimers).forEach(t=>clearInterval(t));qrTimers={};}
 
 // ══ SUPABASE ════════════════════════════════════════════════
-// SECURITY NOTE: PIN is currently stored as plaintext.
+// ── PIN Hashing (SEC-01) ────────────────────────────────────
+// Hashes PIN with SHA-256 (hex) before sending to DB.
+// Migration: run once to update all existing employee PINs in DB.
+// For production hardening, move to a Supabase Edge Function using bcrypt.
+async function hashPin(pin){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(pin)));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// SECURITY NOTE: PIN is now SHA-256 hashed before compare/store.
 // For production, move this to a Supabase Edge Function that hashes PIN with bcrypt.
 async function sbLogin(empId,pin){
   const safeId=String(empId||'').trim().slice(0,50);
   const safePin=String(pin||'').trim().slice(0,8);
   if(!safeId||!safePin)return{ok:false,msg:'กรุณากรอกข้อมูลให้ครบ'};
-  const{data,error}=await db.from('employees').select('id,name,branch,position,role').eq('id',safeId).eq('pin',safePin).eq('is_active',true).maybeSingle();
+  const hashedPin=await hashPin(safePin);
+  const{data,error}=await db.from('employees').select('id,name,branch,position,role').eq('id',safeId).eq('pin',hashedPin).eq('is_active',true).maybeSingle();
   if(error||!data)return{ok:false,msg:'รหัสพนักงานหรือ PIN ไม่ถูกต้อง'};
   return{ok:true,emp:{id:data.id,name:data.name,branch:data.branch,position:data.position,role:data.role}};
 }
@@ -303,7 +313,8 @@ async function sbGetEmployees(){
 async function sbAddEmployee({empId,name,branch,position,pin,role}){
   const{data:existing}=await db.from('employees').select('id').eq('id',empId).maybeSingle();
   if(existing)return{ok:false,msg:'รหัสพนักงานนี้มีอยู่แล้ว'};
-  const{error}=await db.from('employees').insert({id:empId,name,branch:branch||'',position:position||'',pin,is_active:true,role:role||'user'});
+  const pinHash=await hashPin(pin);
+  const{error}=await db.from('employees').insert({id:empId,name,branch:branch||'',position:position||'',pin:pinHash,is_active:true,role:role||'user'});
   if(error)return{ok:false,msg:error.message};return{ok:true};
 }
 async function sbToggleEmployee(empId,active){
@@ -318,7 +329,7 @@ async function sbToggleEmployee(empId,active){
 }
 async function sbUpdateEmployee(empId,{name,branch,position,role,pin}){
   const upd={name,branch:branch||'',position:position||'',role:role||'user'};
-  if(pin)upd.pin=pin;
+  if(pin){upd.pin=await hashPin(pin);}
   try{
     await db.from('audit_log').insert({
       action:'update_employee',emp_id:currentUser?.id||null,emp_name:currentUser?.name||null,
