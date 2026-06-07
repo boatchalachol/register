@@ -4,9 +4,10 @@ export const loginHTML = /* html */`
 <!-- ══ LOGIN VIEW ══════════════════════════════════════════ -->
 <div class="view active" id="view-login">
   <div class="login-wrap">
-    <div class="login-logo"><i class="ti ti-map-pin"></i></div>
-    <div class="login-title">ระบบลงทะเบียน</div>
-    <div class="login-sub">ลงทะเบียนเข้างาน · CHALACHOL GROUP</div>
+    <div class="login-logo">
+      <img src="img/logo.png" alt="CHALACHOL GROUP" style="width:160px;height:auto;display:block;margin:0 auto;">
+    </div>
+    <div class="login-sub">ลงทะเบียนเข้างาน · CHALACHOL Bangkok</div>
     <div class="card">
       <div id="loginAlert"></div>
       <div class="lockout-bar" id="lockoutBar"></div>
