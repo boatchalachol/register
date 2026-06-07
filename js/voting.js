@@ -104,7 +104,7 @@ async function sbGetMyVotedContests() {
 async function initVotingPage() {
   await loadContestList();
   // Realtime: subscribe votes table — reload ทันทีเมื่อมี vote ใหม่
-  if(voteRealtimeChannel)db.removeChannel(voteRealtimeChannel);
+  if(voteRealtimeChannel){try{db&&db.removeChannel(voteRealtimeChannel);}catch(_){}}
   voteRealtimeChannel=db.channel('votes-admin')
     .on('postgres_changes',{event:'*',schema:'public',table:'votes'},()=>{
       loadContestList();
@@ -284,7 +284,7 @@ async function initVoteView() {
 
   // Dual approach: Realtime subscription + Polling fallback
   // 1) Realtime (ถ้า Supabase Realtime/Replication เปิดอยู่)
-  if (userVoteRealtimeChannel) db.removeChannel(userVoteRealtimeChannel);
+  if (userVoteRealtimeChannel) { try{ db&&db.removeChannel(userVoteRealtimeChannel); }catch(_){} }
   userVoteRealtimeChannel = db.channel('contests-user-' + currentUser.id)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'contests' }, async () => {
       const selectStep = document.getElementById('vstep-select');
@@ -479,6 +479,7 @@ function resetVoteState() {
   voteSelectedScore = null;
   voteMyDoneIds = [];
   // Cleanup realtime channel + polling เมื่อ logout
-  if (userVoteRealtimeChannel) { db.removeChannel(userVoteRealtimeChannel); userVoteRealtimeChannel = null; }
+  // FIX #3: guard db null เพื่อป้องกัน crash ถ้า logout ก่อน db init
+  if (userVoteRealtimeChannel) { try{ db&&db.removeChannel(userVoteRealtimeChannel); }catch(_){} userVoteRealtimeChannel = null; }
   _stopVotePolling();
 }
