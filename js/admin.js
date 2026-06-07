@@ -26,7 +26,7 @@ function showAdminPage(name,btnEl){
   if(wheelAnimFrame){cancelAnimationFrame(wheelAnimFrame);wheelAnimFrame=null;}
   if(dashRefreshTimer){clearInterval(dashRefreshTimer);dashRefreshTimer=null;}
   // unsubscribe realtime เมื่อออกจากหน้า voting
-  if(name!=='voting'&&voteRealtimeChannel){db.removeChannel(voteRealtimeChannel);voteRealtimeChannel=null;}
+  if(name!=='voting'&&voteRealtimeChannel){try{db&&db.removeChannel(voteRealtimeChannel);}catch(_){}voteRealtimeChannel=null;}
   document.querySelectorAll('.apage').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.htab').forEach(t=>t.classList.remove('active'));
   const page=document.getElementById('apage-'+name);if(page)page.classList.add('active');
@@ -673,6 +673,61 @@ function spinWheel(){
   wheelAnimFrame=requestAnimationFrame(animate);
 }
 // ── WHEEL TTS ANNOUNCEMENT ────────────────────────────────────────────
+// Priority: OpenAI TTS (AI voice) → Web Speech API (OS fallback)
+
+// ── OpenAI TTS ─────────────────────────────────────────────
+function saveOpenAIKey(){
+  const inp = document.getElementById('openaiKeyInput');
+  const key = (inp?.value||'').trim();
+  const statusEl = document.getElementById('openaiKeyStatus');
+  if(!key){ if(statusEl) statusEl.innerHTML='<span style="color:var(--red)">⚠️ กรุณากรอก API Key</span>'; return; }
+  if(!key.startsWith('sk-')){ if(statusEl) statusEl.innerHTML='<span style="color:var(--red)">⚠️ Key ต้องขึ้นต้นด้วย sk-</span>'; return; }
+  localStorage.setItem('_oai_key', key);
+  const voice = document.getElementById('openaiVoiceSelect')?.value || 'onyx';
+  localStorage.setItem('_oai_voice', voice);
+  if(inp) inp.value='';
+  if(statusEl) statusEl.innerHTML='<span style="color:var(--teal)">✅ บันทึก Key แล้ว — พร้อมใช้งาน</span>';
+}
+
+function _loadOpenAISettings(){
+  const key = localStorage.getItem('_oai_key')||'';
+  const voice = localStorage.getItem('_oai_voice')||'onyx';
+  const statusEl = document.getElementById('openaiKeyStatus');
+  const voiceSel = document.getElementById('openaiVoiceSelect');
+  if(voiceSel) voiceSel.value = voice;
+  if(statusEl){
+    statusEl.innerHTML = key
+      ? '<span style="color:var(--teal)">✅ มี API Key บันทึกไว้แล้ว</span>'
+      : '<span style="color:var(--text3)">ยังไม่มี API Key — จะใช้เสียงระบบแทน</span>';
+  }
+}
+
+async function _speakOpenAI(text){
+  const key = localStorage.getItem('_oai_key')||'';
+  if(!key) return false;
+  const voice = localStorage.getItem('_oai_voice')||'onyx';
+  try{
+    const resp = await fetch('https://api.openai.com/v1/audio/speech',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'tts-1-hd',
+        input: text,
+        voice: voice,
+        speed: 0.88
+      })
+    });
+    if(!resp.ok){ console.warn('OpenAI TTS error:', resp.status); return false; }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.onended = ()=>URL.revokeObjectURL(url);
+    await audio.play();
+    return true;
+  }catch(e){ console.warn('OpenAI TTS failed:', e); return false; }
+}
+
+// ── Web Speech fallback ─────────────────────────────────────
 let _ttsVoices = [];
 let _selectedVoiceURI = ''; // '' = auto
 
@@ -682,21 +737,17 @@ function _loadVoices(){
   _renderVoiceSelect();
 }
 if(window.speechSynthesis){
-  // Chrome: voices ไม่พร้อมทันที ต้องรอ onvoiceschanged
   _loadVoices();
   window.speechSynthesis.onvoiceschanged = _loadVoices;
-  // fallback: ลอง getVoices อีกครั้งหลัง 500ms (บางเบราว์เซอร์ไม่ fire event)
   setTimeout(_loadVoices, 500);
   setTimeout(_loadVoices, 1500);
 }
 
-// สร้าง/อัปเดต dropdown เลือกเสียงในหน้า settings
 function _renderVoiceSelect(){
   const sel = document.getElementById('wheelVoiceSelect');
   if(!sel) return;
   const prev = sel.value;
-  sel.innerHTML = '<option value="">🔊 อัตโนมัติ (แนะนำ)</option>';
-  // จัดกลุ่ม: ภาษาไทยก่อน, แล้วค่อยอื่น
+  sel.innerHTML = '<option value="">🔊 อัตโนมัติ</option>';
   const th = _ttsVoices.filter(v => v.lang.startsWith('th'));
   const others = _ttsVoices.filter(v => !v.lang.startsWith('th'));
   if(th.length){
@@ -709,76 +760,58 @@ function _renderVoiceSelect(){
     others.forEach(v => { const o=document.createElement('option'); o.value=v.voiceURI; o.textContent=`${v.name} (${v.lang})`; g.appendChild(o); });
     sel.appendChild(g);
   }
-  // คืนค่าที่เลือกไว้ก่อนหน้า
   const restoreVal = _selectedVoiceURI || prev;
   if(restoreVal && [...sel.options].some(o=>o.value===restoreVal)) sel.value = restoreVal;
   else sel.value = '';
+  // โหลด OpenAI settings เมื่อ settings page เปิด
+  _loadOpenAISettings();
 }
 
-function _pickVoice(){
+function _pickWebVoice(){
   if(_selectedVoiceURI){
     const found = _ttsVoices.find(v => v.voiceURI === _selectedVoiceURI);
     if(found) return found;
   }
-  // auto: ภาษาไทยก่อน → อังกฤษ → ค่า default
-  const th = _ttsVoices.find(v => v.lang.startsWith('th'));
-  if(th) return th;
-  const en = _ttsVoices.find(v => v.lang.startsWith('en'));
-  return en || _ttsVoices[0] || null;
+  return _ttsVoices.find(v => v.lang.startsWith('th')) || _ttsVoices[0] || null;
+}
+
+function _speakWeb(text){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const voice = _pickWebVoice();
+  const u = new SpeechSynthesisUtterance(text);
+  if(voice) u.voice = voice;
+  u.lang = 'th-TH';
+  u.rate = 0.88; u.pitch = 1.05; u.volume = 1.0;
+  window.speechSynthesis.speak(u);
 }
 
 let _wheelMuted = false;
 
-function announceWinner(winner, round){
-  if(!window.speechSynthesis || _wheelMuted) return;
-  window.speechSynthesis.cancel();
-
-  const voice = _pickVoice();
-  const isThVoice = voice?.lang?.startsWith('th');
-
-  let text;
-  if(isThVoice){
-    text = `ขอแสดงความยินดี! ผู้โชคดีรอบที่ ${round} คือ ${winner.emp_name}`;
-    if(winner.branch) text += ` จาก${winner.branch}`;
-    text += ` ยินดีด้วยนะคะ`;
-  } else {
-    text = `Congratulations! Round ${round} winner is ${winner.emp_name}`;
-    if(winner.branch) text += `, from ${winner.branch}`;
-  }
-
-  const speak = (t, delay=0) => {
-    setTimeout(() => {
-      const u = new SpeechSynthesisUtterance(t);
-      if(voice) u.voice = voice;
-      u.lang   = voice?.lang || (isThVoice ? 'th-TH' : 'en-US');
-      u.rate   = 0.88;
-      u.pitch  = 1.05;
-      u.volume = 1.0;
-      window.speechSynthesis.speak(u);
-    }, delay);
-  };
-
-  speak(text, 600);
-  speak(winner.emp_name, 3200);
+async function announceWinner(winner, round){
+  if(_wheelMuted) return;
+  const text = `ขอแสดงความยินดี... ผู้โชคดี รอบที่ ${round}... คือ... ${winner.emp_name}`
+    + (winner.branch ? `... จาก ${winner.branch}` : '')
+    + `... ยินดีด้วยครับ`;
+  // ลอง OpenAI TTS ก่อน — ถ้าไม่มี key หรือ error ค่อย fallback Web Speech
+  const ok = await _speakOpenAI(text);
+  if(!ok) _speakWeb(text);
 }
 
-// ทดสอบเสียงตัวอย่าง
-function previewWheelVoice(){
-  if(!window.speechSynthesis){ alert('เบราว์เซอร์ไม่รองรับ Text-to-Speech'); return; }
-  // บันทึกค่าที่เลือกปัจจุบันก่อนทดสอบ
-  const sel = document.getElementById('wheelVoiceSelect');
-  if(sel) _selectedVoiceURI = sel.value;
-  window.speechSynthesis.cancel();
-  const voice = _pickVoice();
-  const isThVoice = voice?.lang?.startsWith('th');
-  const text = isThVoice
-    ? 'ขอแสดงความยินดี! ผู้โชคดีคือ คุณสมชาย ใจดี ยินดีด้วยนะคะ'
-    : 'Congratulations! The winner is Somchai Jaidee!';
-  const u = new SpeechSynthesisUtterance(text);
-  if(voice) u.voice = voice;
-  u.lang = voice?.lang || (isThVoice ? 'th-TH' : 'en-US');
-  u.rate = 0.88; u.pitch = 1.05; u.volume = 1.0;
-  window.speechSynthesis.speak(u);
+// ทดสอบเสียง
+async function previewWheelVoice(){
+  // บันทึก voice ที่เลือกก่อน
+  const webSel = document.getElementById('wheelVoiceSelect');
+  if(webSel) _selectedVoiceURI = webSel.value;
+  const oaiVoiceSel = document.getElementById('openaiVoiceSelect');
+  if(oaiVoiceSel) localStorage.setItem('_oai_voice', oaiVoiceSel.value);
+
+  const text = 'ขอแสดงความยินดี... ผู้โชคดีคือ... คุณสมชาย ใจดี... ยินดีด้วยครับ';
+  const ok = await _speakOpenAI(text);
+  if(!ok){
+    if(!window.speechSynthesis){ alert('เบราว์เซอร์ไม่รองรับ Text-to-Speech'); return; }
+    _speakWeb(text);
+  }
 }
 
 function showWheelResult(winner){
