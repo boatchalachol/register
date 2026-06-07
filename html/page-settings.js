@@ -116,25 +116,56 @@ export const pageSettingsHTML = /* html */`
     <!-- Wheel TTS Voice Settings -->
     <p class="section-head"><i class="ti ti-volume"></i> ตั้งค่าเสียงประกาศรางวัล</p>
     <div class="toggle-row" style="display:block;padding:16px">
-      <div style="font-size:13px;color:var(--text2);margin-bottom:14px">
-        เลือกเสียงที่ใช้ประกาศผู้โชคดีเมื่อหมุนกงล้อ — รายการเสียงขึ้นกับระบบปฏิบัติการและเบราว์เซอร์
+
+      <!-- OpenAI TTS -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;color:var(--text1);margin-bottom:4px">
+          <i class="ti ti-sparkles" style="color:var(--amber)"></i> OpenAI TTS — AI Voice (แนะนำ)
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:10px">
+          เสียง AI คุณภาพสูง — เก็บ Key ในเครื่องเท่านั้น ไม่บันทึก Supabase
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="password" id="openaiKeyInput" placeholder="sk-proj-..."
+            style="flex:1;padding:9px 12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:8px;color:var(--text1);font-size:13px;font-family:var(--mono);outline:none"
+            autocomplete="off" aria-label="OpenAI API Key">
+          <button class="btn btn-outline btn-sm" onclick="saveOpenAIKey()" style="flex-shrink:0">
+            <i class="ti ti-device-floppy"></i> บันทึก Key
+          </button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select id="openaiVoiceSelect"
+            style="flex:1;min-width:180px;padding:9px 12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:8px;color:var(--text1);font-size:13px;font-family:var(--font);outline:none;cursor:pointer"
+            aria-label="เลือก AI Voice">
+            <option value="onyx">🎙️ Onyx — ชาย เสียงลึก หรู (แนะนำ)</option>
+            <option value="echo">🎙️ Echo — ชาย กลาง ชัดเจน</option>
+            <option value="fable">🎙️ Fable — ชาย อบอุ่น</option>
+            <option value="alloy">🎙️ Alloy — กลาง</option>
+            <option value="nova">🎙️ Nova — หญิง</option>
+            <option value="shimmer">🎙️ Shimmer — หญิง อ่อนโยน</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="previewWheelVoice()" style="flex-shrink:0">
+            <i class="ti ti-player-play"></i> ทดสอบเสียง
+          </button>
+        </div>
+        <div id="openaiKeyStatus" style="margin-top:8px;font-size:12px"></div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+
+      <div style="border-top:1px solid var(--border);margin:14px 0"></div>
+
+      <!-- Fallback: Web Speech -->
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:4px">
+          <i class="ti ti-device-laptop"></i> Web Speech — เสียงระบบ (Fallback)
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:10px">ใช้เมื่อไม่มี OpenAI Key</div>
         <select id="wheelVoiceSelect"
-          style="flex:1;min-width:200px;padding:9px 12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:8px;color:var(--text1);font-size:13px;font-family:var(--font);outline:none;cursor:pointer"
-          aria-label="เลือกเสียงประกาศ">
-          <option value="">🔊 อัตโนมัติ (แนะนำ)</option>
+          style="width:100%;padding:9px 12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:8px;color:var(--text1);font-size:13px;font-family:var(--font);outline:none;cursor:pointer"
+          aria-label="เลือกเสียงระบบ">
+          <option value="">🔊 อัตโนมัติ</option>
         </select>
-        <button class="btn btn-outline btn-sm" onclick="previewWheelVoice()" title="ทดสอบเสียง" style="flex-shrink:0">
-          <i class="ti ti-player-play"></i> ทดสอบเสียง
-        </button>
       </div>
-      <div style="margin-top:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text3)">
-        <i class="ti ti-info-circle"></i>
-        <strong style="color:var(--text2)">เคล็ดลับ:</strong>
-        Windows มีเสียง Microsoft Zira / David · macOS/iOS มี Siriluck (ไทย) · Android มี Google ภาษาไทย
-        — ถ้าไม่เห็นเสียงไทย ให้ติดตั้ง TTS Pack ภาษาไทยในระบบก่อน
-      </div>
+
     </div>
 
     <div class="divider"></div>
