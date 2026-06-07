@@ -719,6 +719,20 @@ const pageSettingsHTML = `
     </div>
 
     <div class="divider"></div>
+
+    <!-- ── Wheel On-Time Cutoff ──────────────────────────── -->
+    <p class="section-head"><i class="ti ti-clock"></i> ตั้งค่ากงล้อสุ่มรางวัล</p>
+    <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:16px;margin-bottom:16px">
+      <label for="wheelOnTimeInput" style="font-size:12px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <i class="ti ti-clock"></i> เวลาตัดรอบ "ตรงเวลา" (HH:MM)
+      </label>
+      <input type="time" id="wheelOnTimeInput" value="09:00"
+        style="padding:8px 10px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:8px;color:var(--text1);font-size:14px;font-family:var(--mono);width:160px"
+        aria-label="เวลาตัดรอบตรงเวลา">
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">พนักงานที่ลงทะเบียนก่อนเวลานี้จะถือว่า "ตรงเวลา" สำหรับโหมดกรองในกงล้อ</div>
+    </div>
+
+    <div class="divider"></div>
     <button class="btn btn-amber" id="btnSaveSettings">
       <i class="ti ti-device-floppy"></i> บันทึกการตั้งค่าทั้งหมด
     </button>
