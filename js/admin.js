@@ -69,6 +69,9 @@ async function loadSettingsAdmin(){
     // โหลดเวลากรองตรงเวลา wheel
     const wheelOnTimeEl=document.getElementById('wheelOnTimeInput');
     if(wheelOnTimeEl)wheelOnTimeEl.value=s['WheelOnTime']||'09:00';
+    // โหลดเสียงที่เลือกไว้
+    _selectedVoiceURI = s['WheelVoiceURI'] || '';
+    _renderVoiceSelect();
   }catch(e){console.error('loadSettingsAdmin error:',e);}
 }
 async function loadQRTokens(){try{adminQRTokens=await sbGetQRTokens(true);}catch(e){adminQRTokens=[];}}
@@ -332,8 +335,10 @@ async function saveSettings(){
     RadiusLockEnabled:togRad?togRad.checked:featureFlags.radiusEnabled,
     VoteScoreUser:voteScoreUser,
     VoteScoreSuper:voteScoreSuper,
-    WheelOnTime:wheelOnTime
+    WheelOnTime:wheelOnTime,
+    WheelVoiceURI: (document.getElementById('wheelVoiceSelect')?.value || _selectedVoiceURI || '')
   };
+  _selectedVoiceURI = settings.WheelVoiceURI;
   featureFlags.qrEnabled=settings.QREnabled;
   featureFlags.locationEnabled=settings.LocationEnabled;
   featureFlags.radiusEnabled=settings.RadiusLockEnabled;
@@ -669,16 +674,48 @@ function spinWheel(){
 }
 // ── WHEEL TTS ANNOUNCEMENT ────────────────────────────────────────────
 let _ttsVoices = [];
+let _selectedVoiceURI = ''; // '' = auto
+
 function _loadVoices(){
   _ttsVoices = window.speechSynthesis?.getVoices() || [];
+  _renderVoiceSelect(); // อัปเดต dropdown ทุกครั้งที่ list เปลี่ยน
 }
 if(window.speechSynthesis){
   _loadVoices();
   window.speechSynthesis.onvoiceschanged = _loadVoices;
 }
 
+// สร้าง/อัปเดต dropdown เลือกเสียงในหน้า settings
+function _renderVoiceSelect(){
+  const sel = document.getElementById('wheelVoiceSelect');
+  if(!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">🔊 อัตโนมัติ (แนะนำ)</option>';
+  // จัดกลุ่ม: ภาษาไทยก่อน, แล้วค่อยอื่น
+  const th = _ttsVoices.filter(v => v.lang.startsWith('th'));
+  const others = _ttsVoices.filter(v => !v.lang.startsWith('th'));
+  if(th.length){
+    const g = document.createElement('optgroup'); g.label = '🇹🇭 ภาษาไทย';
+    th.forEach(v => { const o=document.createElement('option'); o.value=v.voiceURI; o.textContent=`${v.name} (${v.lang})`; g.appendChild(o); });
+    sel.appendChild(g);
+  }
+  if(others.length){
+    const g = document.createElement('optgroup'); g.label = '🌐 ภาษาอื่น';
+    others.forEach(v => { const o=document.createElement('option'); o.value=v.voiceURI; o.textContent=`${v.name} (${v.lang})`; g.appendChild(o); });
+    sel.appendChild(g);
+  }
+  // คืนค่าที่เลือกไว้ก่อนหน้า
+  const restoreVal = _selectedVoiceURI || prev;
+  if(restoreVal && [...sel.options].some(o=>o.value===restoreVal)) sel.value = restoreVal;
+  else sel.value = '';
+}
+
 function _pickVoice(){
-  // ลำดับความสำคัญ: ไทย → อังกฤษ → ค่า default
+  if(_selectedVoiceURI){
+    const found = _ttsVoices.find(v => v.voiceURI === _selectedVoiceURI);
+    if(found) return found;
+  }
+  // auto: ภาษาไทยก่อน → อังกฤษ → ค่า default
   const th = _ttsVoices.find(v => v.lang.startsWith('th'));
   if(th) return th;
   const en = _ttsVoices.find(v => v.lang.startsWith('en'));
@@ -689,7 +726,7 @@ let _wheelMuted = false;
 
 function announceWinner(winner, round){
   if(!window.speechSynthesis || _wheelMuted) return;
-  window.speechSynthesis.cancel(); // หยุดเสียงก่อนหน้า
+  window.speechSynthesis.cancel();
 
   const voice = _pickVoice();
   const isThVoice = voice?.lang?.startsWith('th');
@@ -700,12 +737,10 @@ function announceWinner(winner, round){
     if(winner.branch) text += ` จาก${winner.branch}`;
     text += ` ยินดีด้วยนะคะ`;
   } else {
-    // fallback ภาษาอังกฤษ
     text = `Congratulations! Round ${round} winner is ${winner.emp_name}`;
     if(winner.branch) text += `, from ${winner.branch}`;
   }
 
-  // ประกาศ 2 ครั้ง — ครั้งแรกทันที ครั้งสองหลัง 1.8 วิ
   const speak = (t, delay=0) => {
     setTimeout(() => {
       const u = new SpeechSynthesisUtterance(t);
@@ -718,8 +753,27 @@ function announceWinner(winner, round){
     }, delay);
   };
 
-  speak(text, 600);       // รอให้ modal เปิดก่อน
-  speak(winner.emp_name, 3200); // พูดชื่ออีกครั้ง
+  speak(text, 600);
+  speak(winner.emp_name, 3200);
+}
+
+// ทดสอบเสียงตัวอย่าง
+function previewWheelVoice(){
+  if(!window.speechSynthesis){ alert('เบราว์เซอร์ไม่รองรับ Text-to-Speech'); return; }
+  // บันทึกค่าที่เลือกปัจจุบันก่อนทดสอบ
+  const sel = document.getElementById('wheelVoiceSelect');
+  if(sel) _selectedVoiceURI = sel.value;
+  window.speechSynthesis.cancel();
+  const voice = _pickVoice();
+  const isThVoice = voice?.lang?.startsWith('th');
+  const text = isThVoice
+    ? 'ขอแสดงความยินดี! ผู้โชคดีคือ คุณสมชาย ใจดี ยินดีด้วยนะคะ'
+    : 'Congratulations! The winner is Somchai Jaidee!';
+  const u = new SpeechSynthesisUtterance(text);
+  if(voice) u.voice = voice;
+  u.lang = voice?.lang || (isThVoice ? 'th-TH' : 'en-US');
+  u.rate = 0.88; u.pitch = 1.05; u.volume = 1.0;
+  window.speechSynthesis.speak(u);
 }
 
 function showWheelResult(winner){
