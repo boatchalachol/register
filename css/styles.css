@@ -181,14 +181,19 @@ body {
 .login-wrap { width: 100%; max-width: 400px; padding: 0 16px 48px; }
 
 .login-logo {
-  width: 72px; height: 72px;
+  width: 160px; height: 160px;
   border-radius: 22px;
-  background: linear-gradient(135deg, var(--teal), var(--teal2));
+  background: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-size: 32px; color: #01201a;
   margin: 0 auto 24px;
   box-shadow: 0 0 0 1px var(--teal-bd), 0 0 40px var(--teal-glow), 0 8px 32px rgba(0,0,0,0.5);
   animation: glow 3s ease-in-out infinite;
+  overflow: hidden;
+}
+.login-logo img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  padding: 12px;
 }
 .login-title {
   font-size: 26px; font-weight: 800;
