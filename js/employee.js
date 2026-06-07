@@ -123,7 +123,7 @@ function doLogout(){
 function setupUserHeader(){
   document.getElementById('mainHeader').style.display='flex';
   document.getElementById('headerLogo').className='h-logo user-logo';
-  document.getElementById('headerLogo').innerHTML='<i class="ti ti-map-pin"></i>';
+  document.getElementById('headerLogo').innerHTML='<img src="img/logo.png" alt="logo" style="width:32px;height:32px;object-fit:contain;border-radius:6px">';
   document.getElementById('headerTitle').textContent='ลงทะเบียนเข้างาน';
   document.getElementById('headerSub').textContent=currentUser.name||'';
   document.getElementById('headerRight').innerHTML=`<button class="btn btn-outline btn-sm" id="btnHeaderLogout"><i class="ti ti-logout"></i> ออก</button>`;
