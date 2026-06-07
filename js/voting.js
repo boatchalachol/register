@@ -422,7 +422,7 @@ function setupVoteHeader() {
   const logoEl = document.getElementById('headerLogo');
   logoEl.className = isSuper ? 'h-logo vote-logo-super' : 'h-logo vote-logo-user';
   logoEl.style.cssText = '';
-  logoEl.innerHTML = isSuper ? '<i class="ti ti-star"></i>' : '<i class="ti ti-trophy"></i>';
+  logoEl.innerHTML = '<img src="img/logo.png" alt="logo" style="width:32px;height:32px;object-fit:contain;border-radius:6px">';
   const titleText = isSuper ? 'Super Voter' : 'โหวตให้คะแนน';
   document.getElementById('headerTitle').innerHTML =
     titleText + (isSuper ? ' <span class="super-badge"><i class="ti ti-bolt" style="font-size:10px"></i> SUPER</span>' : '');
