@@ -350,13 +350,19 @@ async function saveSettings(){
 }
 
 // ══ MANUAL REG ══════════════════════════════════════════════
-function initMRegPage(){
-  mregSelEmp=null;mregSelCp=null;
+let mregRegisteredToday=new Set();
+async function initMRegPage(){
+  mregSelEmp=null;mregSelCp=null;mregRegisteredToday=new Set();
   showAlert('mregAlert','','');
   document.querySelectorAll('.mreg-step').forEach(s=>s.classList.remove('active'));
   document.getElementById('mstep1').classList.add('active');
   updateMRegStepBar(1);
   const s=document.getElementById('mregSearch');if(s){s.value='';s.focus();}
+  // โหลดรายชื่อที่ลงทะเบียนวันนี้แล้ว เพื่อซ่อนออกจากรายการ
+  try{
+    const regs=await sbGetTodayRegistrations('all',null);
+    regs.forEach(r=>mregRegisteredToday.add(r.emp_id));
+  }catch(e){console.warn('โหลดรายการลงทะเบียนไม่ได้:',e);}
   renderMRegEmpList('');
 }
 function updateMRegStepBar(step){
@@ -378,7 +384,9 @@ function renderMRegEmpList(query){
     setBtn('btnMregStep2',true);return;
   }
   const filtered=adminEmployees.filter(e=>
-    e.is_active&&(!query||
+    e.is_active&&
+    !mregRegisteredToday.has(e.id)&&
+    (!query||
       e.name.toLowerCase().includes(query)||
       e.id.toLowerCase().includes(query)||
       (e.branch||'').toLowerCase().includes(query)||
@@ -388,7 +396,7 @@ function renderMRegEmpList(query){
   if(!filtered.length){
     list.innerHTML=`<div class="mreg-no-results">
       <i class="ti ti-users-off" style="font-size:22px;display:block;margin-bottom:6px;opacity:.4"></i>
-      ${adminEmployees.length?'ไม่พบพนักงานที่ค้นหา':'ยังไม่มีข้อมูลพนักงาน'}
+      ${!adminEmployees.length?'ยังไม่มีข้อมูลพนักงาน':mregRegisteredToday.size===adminEmployees.filter(e=>e.is_active).length?'พนักงาน Active ทุกคนลงทะเบียนแล้ววันนี้':'ไม่พบพนักงานที่ค้นหา'}
     </div>`;
     setBtn('btnMregStep2',true);return;
   }
@@ -488,6 +496,7 @@ async function mregDoRegister(){
       <div class="info-cell"><div class="ic-lbl">Admin</div><div class="ic-val" style="font-family:var(--mono);font-size:12px">${escHtml(currentUser.id)}</div></div>
       <div class="info-cell"><div class="ic-lbl">Reg ID</div><div class="ic-val" style="font-family:var(--mono);font-size:11px">${escHtml(res.regId)}</div></div>
       ${noteHtml}`;
+    mregRegisteredToday.add(mregSelEmp.id);
     document.querySelectorAll('.mreg-step').forEach(s=>s.classList.remove('active'));
     document.getElementById('mstep3').classList.add('active');
     updateMRegStepBar(3);
