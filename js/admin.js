@@ -667,6 +667,61 @@ function spinWheel(){
   }
   wheelAnimFrame=requestAnimationFrame(animate);
 }
+// ── WHEEL TTS ANNOUNCEMENT ────────────────────────────────────────────
+let _ttsVoices = [];
+function _loadVoices(){
+  _ttsVoices = window.speechSynthesis?.getVoices() || [];
+}
+if(window.speechSynthesis){
+  _loadVoices();
+  window.speechSynthesis.onvoiceschanged = _loadVoices;
+}
+
+function _pickVoice(){
+  // ลำดับความสำคัญ: ไทย → อังกฤษ → ค่า default
+  const th = _ttsVoices.find(v => v.lang.startsWith('th'));
+  if(th) return th;
+  const en = _ttsVoices.find(v => v.lang.startsWith('en'));
+  return en || _ttsVoices[0] || null;
+}
+
+let _wheelMuted = false;
+
+function announceWinner(winner, round){
+  if(!window.speechSynthesis || _wheelMuted) return;
+  window.speechSynthesis.cancel(); // หยุดเสียงก่อนหน้า
+
+  const voice = _pickVoice();
+  const isThVoice = voice?.lang?.startsWith('th');
+
+  let text;
+  if(isThVoice){
+    text = `ขอแสดงความยินดี! ผู้โชคดีรอบที่ ${round} คือ ${winner.emp_name}`;
+    if(winner.branch) text += ` จาก${winner.branch}`;
+    text += ` ยินดีด้วยนะคะ`;
+  } else {
+    // fallback ภาษาอังกฤษ
+    text = `Congratulations! Round ${round} winner is ${winner.emp_name}`;
+    if(winner.branch) text += `, from ${winner.branch}`;
+  }
+
+  // ประกาศ 2 ครั้ง — ครั้งแรกทันที ครั้งสองหลัง 1.8 วิ
+  const speak = (t, delay=0) => {
+    setTimeout(() => {
+      const u = new SpeechSynthesisUtterance(t);
+      if(voice) u.voice = voice;
+      u.lang   = voice?.lang || (isThVoice ? 'th-TH' : 'en-US');
+      u.rate   = 0.88;
+      u.pitch  = 1.05;
+      u.volume = 1.0;
+      window.speechSynthesis.speak(u);
+    }, delay);
+  };
+
+  speak(text, 600);       // รอให้ modal เปิดก่อน
+  speak(winner.emp_name, 3200); // พูดชื่ออีกครั้ง
+}
+
 function showWheelResult(winner){
   document.getElementById('wrEmoji').textContent=WINNER_EMOJIS[wheelWinners.length%WINNER_EMOJIS.length];
   document.getElementById('wrRound').textContent=wheelWinners.length+1;
@@ -675,12 +730,14 @@ function showWheelResult(winner){
   document.getElementById('wrCp').textContent='📍 '+(winner.cp_name||'—');
   document.getElementById('wheelResultModal').classList.add('show');
   const wonAt=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'});
+  const round = wheelWinners.length + 1;
   wheelWinners.unshift({...winner,_wonAt:wonAt});
   renderWinnerList();startConfetti();
+  announceWinner(winner, round); // 🔊 ประกาศผลด้วยเสียง AI
   sbSaveWinner(winner).catch(e=>console.warn('บันทึกผู้โชคดีไม่สำเร็จ:',e));
   if(excludeWinners)setTimeout(loadWheelData,500);
 }
-function closeWheelResult(){document.getElementById('wheelResultModal').classList.remove('show');stopConfetti();}
+function closeWheelResult(){document.getElementById('wheelResultModal').classList.remove('show');stopConfetti();if(window.speechSynthesis)window.speechSynthesis.cancel();}
 async function spinAgain(){
   closeWheelResult();
   if(excludeWinners){
