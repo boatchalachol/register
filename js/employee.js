@@ -38,6 +38,8 @@ async function _routeUser(){
     } else {
       await initEmployee();setupUserHeader();showView('emp');
     }
+    // FIX #1: hideLoading ทุก success path (ก่อนหน้านี้ไม่เคย call ทำให้ spinner ค้าง)
+    hideLoading();
   }catch(e){
     hideLoading();
     showAlert('loginAlert','โหลดข้อมูลไม่สำเร็จ: '+e.message,'error');
@@ -51,7 +53,9 @@ async function _restoreSession(){
     const saved=JSON.parse(raw);
     if(!saved||!saved.id||!saved.role) return false;
     // Re-verify กับ Supabase ว่า employee ยังอยู่และยัง active
-    const res=await sbGetEmployeeById(saved.id);
+    // FIX #2: Timeout 8 วินาที ป้องกัน spinner ค้างเมื่อ Supabase ไม่ตอบสนอง
+    const timeoutPromise=new Promise((_,rej)=>setTimeout(()=>rej(new Error('Session restore timeout')),8000));
+    const res=await Promise.race([sbGetEmployeeById(saved.id),timeoutPromise]);
     if(!res||!res.is_active) { localStorage.removeItem('_session'); return false; }
     currentUser=res;
     localStorage.setItem('_session', JSON.stringify(currentUser)); // refresh
