@@ -282,17 +282,49 @@ async function initVoteView() {
   await renderVoteContestList();
   showVoteStep('vstep-select');
 
-  // Realtime: subscribe contests table — อัปเดตทันทีเมื่อ admin เปิด/ปิด/สร้าง/ลบงานประกวด
+  // Dual approach: Realtime subscription + Polling fallback
+  // 1) Realtime (ถ้า Supabase Realtime/Replication เปิดอยู่)
   if (userVoteRealtimeChannel) db.removeChannel(userVoteRealtimeChannel);
   userVoteRealtimeChannel = db.channel('contests-user-' + currentUser.id)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'contests' }, async () => {
-      // ถ้า user กำลังอยู่หน้าเลือกงาน ให้ refresh list ทันที
       const selectStep = document.getElementById('vstep-select');
       if (selectStep && selectStep.style.display !== 'none') {
         await renderVoteContestList();
       }
     })
     .subscribe();
+
+  // 2) Polling fallback — poll ทุก 3 วินาที เปรียบเทียบ active contests
+  // Seed ค่าเริ่มต้นก่อน เพื่อไม่ให้ poll ครั้งแรก re-render ซ้ำ
+  try {
+    const _initContests = await sbGetActiveContests();
+    _voteLastActiveIds = _initContests.map(c => c.id).sort().join(',');
+  } catch(e) {}
+  _startVotePolling();
+}
+
+let _votePollingTimer = null;
+let _voteLastActiveIds = '';
+
+function _startVotePolling() {
+  _stopVotePolling();
+  _votePollingTimer = setInterval(async () => {
+    const selectStep = document.getElementById('vstep-select');
+    if (!selectStep || selectStep.style.display === 'none') return;
+    try {
+      const contests = await sbGetActiveContests();
+      const newIds = contests.map(c => c.id).sort().join(',');
+      if (newIds !== _voteLastActiveIds) {
+        _voteLastActiveIds = newIds;
+        await renderVoteContestList();
+      }
+    } catch(e) { /* silent fail */ }
+  }, 2000);
+}
+
+function _stopVotePolling() {
+  if (_votePollingTimer) { clearInterval(_votePollingTimer); _votePollingTimer = null; }
+  _voteLastActiveIds = '';
 }
 
 async function renderVoteContestList() {
@@ -449,6 +481,7 @@ function resetVoteState() {
   voteSelectedContest = null;
   voteSelectedScore = null;
   voteMyDoneIds = [];
-  // Cleanup realtime channel เมื่อ logout
+  // Cleanup realtime channel + polling เมื่อ logout
   if (userVoteRealtimeChannel) { db.removeChannel(userVoteRealtimeChannel); userVoteRealtimeChannel = null; }
+  _stopVotePolling();
 }
