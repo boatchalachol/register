@@ -22,19 +22,25 @@ function checkLoginLockout(){
 }
 // ── SESSION HELPERS ─────────────────────────────────────────────────
 async function _routeUser(){
-  if(currentUser.role==='admin'){
-    await initAdmin();setupAdminHeader();showView('admin');
-  } else if(currentUser.role==='superuser'){
-    await initVoteView();setupVoteHeader();showView('vote');
-  } else if(currentUser.role==='user'){
-    const alreadyReg=await sbCheckUserRegisteredToday(currentUser.id);
-    if(alreadyReg){
+  // BUG-FIX: wrap ด้วย try/catch เพื่อป้องกัน loading ค้างถ้า Supabase error
+  try{
+    if(currentUser.role==='admin'){
+      await initAdmin();setupAdminHeader();showView('admin');
+    } else if(currentUser.role==='superuser'){
       await initVoteView();setupVoteHeader();showView('vote');
+    } else if(currentUser.role==='user'){
+      const alreadyReg=await sbCheckUserRegisteredToday(currentUser.id);
+      if(alreadyReg){
+        await initVoteView();setupVoteHeader();showView('vote');
+      } else {
+        await initEmployee();setupUserHeader();showView('emp');
+      }
     } else {
       await initEmployee();setupUserHeader();showView('emp');
     }
-  } else {
-    await initEmployee();setupUserHeader();showView('emp');
+  }catch(e){
+    hideLoading();
+    showAlert('loginAlert','โหลดข้อมูลไม่สำเร็จ: '+e.message,'error');
   }
 }
 
@@ -102,6 +108,9 @@ async function doLogin(){
         if(lockCountdownTimer)clearInterval(lockCountdownTimer);
         lockCountdownTimer=setInterval(updateLockoutBar,1000);
         updateLockoutBar();
+        // BUG-FIX: ถ้า lock แล้ว ไม่ต้องแสดง "เหลือ N ครั้ง"
+        showAlert('loginAlert',res.msg,'error');
+        return;
       }
       const remaining=Math.max(0,5-loginAttempts);
       showAlert('loginAlert',res.msg+(remaining<5?` (เหลือ ${remaining} ครั้ง)`:''),'error');
@@ -507,8 +516,14 @@ async function doRegister(){
         await initVoteView();setupVoteHeader();showView('vote');
       },2000);
     }
-  }catch(err){showAlert('qrAlert','เกิดข้อผิดพลาด: '+err.message,'error');}
-  finally{hideLoading();setConfirmBtn(true);}
+  }catch(err){
+    showAlert('qrAlert','เกิดข้อผิดพลาด: '+err.message,'error');
+    // BUG-FIX: enable ปุ่มคืนเฉพาะตอน error เท่านั้น (success ไม่ต้องการ)
+    hideLoading();setConfirmBtn(true);
+    return;
+  }
+  hideLoading();
+  // success: ไม่ enable ปุ่มคืน เพราะกำลัง redirect ไปหน้าโหวต
 }
 function resetEmpFlow(){
   if(voteRedirectTimer){clearTimeout(voteRedirectTimer);voteRedirectTimer=null;}
