@@ -112,6 +112,32 @@ export const pageSettingsHTML = /* html */`
     </div>
 
     <div class="divider"></div>
+
+    <!-- Wheel TTS Voice Settings -->
+    <p class="section-head"><i class="ti ti-volume"></i> ตั้งค่าเสียงประกาศรางวัล</p>
+    <div class="toggle-row" style="display:block;padding:16px">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:14px">
+        เลือกเสียงที่ใช้ประกาศผู้โชคดีเมื่อหมุนกงล้อ — รายการเสียงขึ้นกับระบบปฏิบัติการและเบราว์เซอร์
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <select id="wheelVoiceSelect"
+          style="flex:1;min-width:200px;padding:9px 12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:8px;color:var(--text1);font-size:13px;font-family:var(--font);outline:none;cursor:pointer"
+          aria-label="เลือกเสียงประกาศ">
+          <option value="">🔊 อัตโนมัติ (แนะนำ)</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="previewWheelVoice()" title="ทดสอบเสียง" style="flex-shrink:0">
+          <i class="ti ti-player-play"></i> ทดสอบเสียง
+        </button>
+      </div>
+      <div style="margin-top:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text3)">
+        <i class="ti ti-info-circle"></i>
+        <strong style="color:var(--text2)">เคล็ดลับ:</strong>
+        Windows มีเสียง Microsoft Zira / David · macOS/iOS มี Siriluck (ไทย) · Android มี Google ภาษาไทย
+        — ถ้าไม่เห็นเสียงไทย ให้ติดตั้ง TTS Pack ภาษาไทยในระบบก่อน
+      </div>
+    </div>
+
+    <div class="divider"></div>
     <button class="btn btn-amber" id="btnSaveSettings">
       <i class="ti ti-device-floppy"></i> บันทึกการตั้งค่าทั้งหมด
     </button>
