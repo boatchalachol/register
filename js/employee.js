@@ -1,3 +1,6 @@
+// BUG-02: timer ref so resetEmpFlow/doLogout can cancel the vote redirect
+let voteRedirectTimer = null;
+
 function updateLockoutBar(){
   const bar=document.getElementById('lockoutBar');
   if(!bar)return;
@@ -18,6 +21,23 @@ function checkLoginLockout(){
   return true;
 }
 async function doLogin(){
+  // WARN-02: restore lockout state from localStorage so refresh doesn't bypass it
+  if(!loginLockUntil){
+    const stored=localStorage.getItem('_ll');
+    if(stored){
+      const parsed=JSON.parse(stored);
+      if(Date.now()<parsed.lockUntil){
+        loginLockUntil=parsed.lockUntil;
+        lockoutCount=parsed.count||0;
+        loginAttempts=0;
+        if(lockCountdownTimer)clearInterval(lockCountdownTimer);
+        lockCountdownTimer=setInterval(updateLockoutBar,1000);
+        updateLockoutBar();
+      }else{
+        localStorage.removeItem('_ll');
+      }
+    }
+  }
   if(!CONFIG_READY){showAlert('loginAlert','⚠️ กรุณาตั้งค่า SUPABASE_URL และ SUPABASE_ANON ก่อนใช้งาน','error');return;}
   if(!checkLoginLockout())return;
   const empId=sanitize(document.getElementById('loginEmpId').value);
@@ -37,6 +57,7 @@ async function doLogin(){
         const lockMs=delays[Math.min(lockoutCount,delays.length-1)];
         lockoutCount++;
         loginLockUntil=Date.now()+lockMs;loginAttempts=0;
+        localStorage.setItem('_ll',JSON.stringify({lockUntil:loginLockUntil,count:lockoutCount}));
         if(lockoutTimerId)clearTimeout(lockoutTimerId);
         lockoutTimerId=setTimeout(()=>{
           loginLockUntil=0;lockoutTimerId=null;
@@ -52,7 +73,7 @@ async function doLogin(){
       showAlert('loginAlert',res.msg+(remaining<5?` (เหลือ ${remaining} ครั้ง)`:''),'error');
       return;
     }
-    loginAttempts=0;loginLockUntil=0;lockoutCount=0;
+    loginAttempts=0;loginLockUntil=0;lockoutCount=0;localStorage.removeItem('_ll');
     if(lockoutTimerId){clearTimeout(lockoutTimerId);lockoutTimerId=null;}
     if(lockCountdownTimer){clearInterval(lockCountdownTimer);lockCountdownTimer=null;}
     currentUser=res.emp;
@@ -81,6 +102,8 @@ function doLogout(){
   if(dashRefreshTimer){clearInterval(dashRefreshTimer);dashRefreshTimer=null;}
   if(wheelAnimFrame){cancelAnimationFrame(wheelAnimFrame);wheelAnimFrame=null;}
   if(lockoutTimerId){clearTimeout(lockoutTimerId);lockoutTimerId=null;}
+  if(voteRedirectTimer){clearTimeout(voteRedirectTimer);voteRedirectTimer=null;}
+  localStorage.removeItem('_ll');
   currentUser=null;selectedCp=null;allCps=[];qrToken=null;gpsReady=false;
   userLat=null;userLng=null;userAcc=null;cameraAvailable=null;adminQRTokens=[];
   mregSelEmp=null;mregSelCp=null;wheelParticipants=[];wheelWinners=[];
@@ -458,7 +481,8 @@ async function doRegister(){
           requestAnimationFrame(()=>{ barFill.style.width='0%'; });
         });
       }
-      setTimeout(async()=>{
+      voteRedirectTimer = setTimeout(async()=>{
+        voteRedirectTimer = null;
         await initVoteView();setupVoteHeader();showView('vote');
       },2000);
     }
@@ -466,6 +490,7 @@ async function doRegister(){
   finally{hideLoading();setConfirmBtn(true);}
 }
 function resetEmpFlow(){
+  if(voteRedirectTimer){clearTimeout(voteRedirectTimer);voteRedirectTimer=null;}
   stopScanner();stopGPSWatch();selectedCp=null;qrToken=null;gpsReady=false;
   userLat=null;userLng=null;userAcc=null;
   currentTab='camera';
