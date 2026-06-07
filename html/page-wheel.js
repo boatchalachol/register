@@ -23,6 +23,9 @@ export const pageWheelHTML = /* html */`
       <button class="btn btn-outline btn-sm" id="btnWheelRefresh">
         <i class="ti ti-refresh"></i> รีเฟรช
       </button>
+      <button class="btn btn-outline btn-sm" id="btnWheelMute" title="เปิด/ปิดเสียงประกาศ" style="min-width:38px;padding:6px 10px">
+        <i class="ti ti-volume" id="wheelMuteIcon"></i>
+      </button>
     </div>
 
     <!-- Options -->
