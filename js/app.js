@@ -28,7 +28,7 @@ const overlaysHTML = `
 <!-- ── Header ───────────────────────────────────────────── -->
 <header class="header" id="mainHeader" style="display:none">
   <div class="h-brand">
-    <div class="h-logo" id="headerLogo"><i class="ti ti-map-pin"></i></div>
+    <div class="h-logo" id="headerLogo"><img src="img/logo.png" alt="logo" style="width:32px;height:32px;object-fit:contain;border-radius:6px"></div>
     <div>
       <div class="h-title" id="headerTitle">CHALACHOL  GROUP</div>
       <div class="h-sub" id="headerSub">—</div>
@@ -42,7 +42,7 @@ const loginHTML = `
 <!-- ══ LOGIN VIEW ══════════════════════════════════════════ -->
 <div class="view active" id="view-login">
   <div class="login-wrap">
-    <div class="login-logo"><i class="ti ti-map-pin"></i></div>
+    <div class="login-logo"><img src="img/logo.png" alt="CHALACHOL" style="width:120px;height:120px;object-fit:contain;border-radius:16px"></div>
     <div class="login-title">CHALACHOL  GROUP</div>
     <div class="login-sub">ลงทะเบียนเข้างาน · CHALACHOL Bangkok</div>
     <div class="card">
