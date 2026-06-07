@@ -56,7 +56,16 @@ async function sbGetActiveContests() {
 }
 
 async function sbSubmitVote(contestId, score) {
-  // Check if already voted
+  // SEC-03: Validate score range by re-fetching settings (prevents client-side bypass)
+  const voteSettings = await sbGetSettings();
+  const isSuper = currentUser.role === 'superuser';
+  const maxAllowed = parseInt(isSuper ? (voteSettings['VoteScoreSuper'] || '100') : (voteSettings['VoteScoreUser'] || '10'));
+  const scoreNum = parseInt(score);
+  if (isNaN(scoreNum) || scoreNum < 1 || scoreNum > maxAllowed) {
+    throw new Error(`คะแนนไม่ถูกต้อง (ต้องอยู่ระหว่าง 1 – ${maxAllowed})`);
+  }
+
+  // Check if already voted (WARN-01: race condition mitigated by DB UNIQUE constraint)
   const { data: existing } = await db
     .from('votes')
     .select('id')
@@ -70,10 +79,14 @@ async function sbSubmitVote(contestId, score) {
     voter_id: currentUser.id,
     voter_name: currentUser.name,
     voter_role: currentUser.role,
-    score: score,
+    score: scoreNum,
     created_at: new Date().toISOString()
   });
-  if (error) throw error;
+  // Handle DB UNIQUE constraint violation (race condition fallback)
+  if (error) {
+    if (error.code === '23505') throw new Error('คุณได้โหวตงานนี้ไปแล้ว');
+    throw error;
+  }
 }
 
 async function sbGetMyVotedContests() {
@@ -339,8 +352,8 @@ async function openVoteScore(contest) {
 
   const label = document.getElementById('voteRangeLabel');
   if (label) label.innerHTML = isSuper
-    ? `<i class="ti ti-star" style="color:var(--amber)"></i> <strong>Super User</strong>: ให้คะแนนได้ <strong>1 – ${max}</strong> คะแนน (${levels} ระดับ)`
-    : `<i class="ti ti-user" style="color:var(--teal)"></i> <strong>User</strong>: ให้คะแนนได้ <strong>1 – ${max}</strong> คะแนน (${levels} ระดับ)`;
+    ? `<i class="ti ti-star" style="color:var(--amber)"></i> <strong>Super User</strong>: ให้คะแนนได้ <strong>1 – ${max}</strong> คะแนน (${scoreValues.length} ระดับ)`
+    : `<i class="ti ti-user" style="color:var(--teal)"></i> <strong>User</strong>: ให้คะแนนได้ <strong>1 – ${max}</strong> คะแนน (${scoreValues.length} ระดับ)`;
 
   const scoreDisp = document.getElementById('voteScoreDisplay');
   if (scoreDisp) scoreDisp.textContent = '-';
