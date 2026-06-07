@@ -33,7 +33,7 @@ function showAdminPage(name,btnEl){
   if(btnEl instanceof Element)btnEl.classList.add('active');
   if(name==='dashboard'){loadDashboard();dashRefreshTimer=setInterval(loadDashboard,60000);}
   if(name==='employees')loadEmployees().then(renderEmployeeTable);
-  if(name==='settings'){loadCheckpoints().then(()=>{renderCpSettings();});loadSettingsAdmin();syncSettingsUI();}
+  if(name==='settings'){loadCheckpoints().then(()=>{renderCpSettings();});loadSettingsAdmin();syncSettingsUI();_renderVoiceSelect();}
   if(name==='qr')refreshQRPage();
   if(name==='manualreg')initMRegPage();
   if(name==='wheel')initWheelPage();
@@ -677,12 +677,17 @@ let _ttsVoices = [];
 let _selectedVoiceURI = ''; // '' = auto
 
 function _loadVoices(){
-  _ttsVoices = window.speechSynthesis?.getVoices() || [];
-  _renderVoiceSelect(); // อัปเดต dropdown ทุกครั้งที่ list เปลี่ยน
+  const voices = window.speechSynthesis?.getVoices() || [];
+  if(voices.length) _ttsVoices = voices;
+  _renderVoiceSelect();
 }
 if(window.speechSynthesis){
+  // Chrome: voices ไม่พร้อมทันที ต้องรอ onvoiceschanged
   _loadVoices();
   window.speechSynthesis.onvoiceschanged = _loadVoices;
+  // fallback: ลอง getVoices อีกครั้งหลัง 500ms (บางเบราว์เซอร์ไม่ fire event)
+  setTimeout(_loadVoices, 500);
+  setTimeout(_loadVoices, 1500);
 }
 
 // สร้าง/อัปเดต dropdown เลือกเสียงในหน้า settings
