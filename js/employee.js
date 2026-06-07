@@ -20,6 +20,40 @@ function checkLoginLockout(){
   if(bar)bar.style.display='none';
   return true;
 }
+// ── SESSION HELPERS ─────────────────────────────────────────────────
+async function _routeUser(){
+  if(currentUser.role==='admin'){
+    await initAdmin();setupAdminHeader();showView('admin');
+  } else if(currentUser.role==='superuser'){
+    await initVoteView();setupVoteHeader();showView('vote');
+  } else if(currentUser.role==='user'){
+    const alreadyReg=await sbCheckUserRegisteredToday(currentUser.id);
+    if(alreadyReg){
+      await initVoteView();setupVoteHeader();showView('vote');
+    } else {
+      await initEmployee();setupUserHeader();showView('emp');
+    }
+  } else {
+    await initEmployee();setupUserHeader();showView('emp');
+  }
+}
+
+async function _restoreSession(){
+  try {
+    const raw=localStorage.getItem('_session');
+    if(!raw) return false;
+    const saved=JSON.parse(raw);
+    if(!saved||!saved.id||!saved.role) return false;
+    // Re-verify กับ Supabase ว่า employee ยังอยู่และยัง active
+    const res=await sbGetEmployeeById(saved.id);
+    if(!res||!res.is_active) { localStorage.removeItem('_session'); return false; }
+    currentUser=res;
+    localStorage.setItem('_session', JSON.stringify(currentUser)); // refresh
+    await _routeUser();
+    return true;
+  } catch(e){ localStorage.removeItem('_session'); return false; }
+}
+
 async function doLogin(){
   // WARN-02: restore lockout state from localStorage so refresh doesn't bypass it
   if(!loginLockUntil){
@@ -77,23 +111,9 @@ async function doLogin(){
     if(lockoutTimerId){clearTimeout(lockoutTimerId);lockoutTimerId=null;}
     if(lockCountdownTimer){clearInterval(lockCountdownTimer);lockCountdownTimer=null;}
     currentUser=res.emp;
-    if(currentUser.role==='admin'){await initAdmin();setupAdminHeader();showView('admin');}
-    else if(currentUser.role==='superuser'){
-      // superuser ไม่ต้องลงทะเบียน → เข้าหน้าโหวตทันที
-      await initVoteView();setupVoteHeader();showView('vote');
-    }
-    else if(currentUser.role==='user'){
-      // ตรวจสอบว่าลงทะเบียนวันนี้แล้วหรือยัง
-      const alreadyReg=await sbCheckUserRegisteredToday(currentUser.id);
-      if(alreadyReg){
-        // ลงทะเบียนแล้ว → ไปหน้าโหวตได้เลย
-        await initVoteView();setupVoteHeader();showView('vote');
-      } else {
-        // ยังไม่ลงทะเบียน → ไปลงทะเบียนก่อน แล้วค่อยไปโหวต
-        await initEmployee();setupUserHeader();showView('emp');
-      }
-    }
-    else{await initEmployee();setupUserHeader();showView('emp');}
+    // SEC: บันทึก session ไว้ใน localStorage เพื่อ auto-restore เมื่อรีเฟรช
+    localStorage.setItem('_session', JSON.stringify(currentUser));
+    await _routeUser();
   }catch(err){showAlert('loginAlert','เชื่อมต่อ Supabase ไม่ได้: '+err.message,'error');}
   finally{hideLoading();setBtn('btnLogin',false,'<i class="ti ti-login"></i> <span>เข้าสู่ระบบ</span>');}
 }
@@ -104,6 +124,7 @@ function doLogout(){
   if(lockoutTimerId){clearTimeout(lockoutTimerId);lockoutTimerId=null;}
   if(voteRedirectTimer){clearTimeout(voteRedirectTimer);voteRedirectTimer=null;}
   localStorage.removeItem('_ll');
+  localStorage.removeItem('_session'); // ล้าง session เมื่อ logout
   currentUser=null;selectedCp=null;allCps=[];qrToken=null;gpsReady=false;
   userLat=null;userLng=null;userAcc=null;cameraAvailable=null;adminQRTokens=[];
   mregSelEmp=null;mregSelCp=null;wheelParticipants=[];wheelWinners=[];
