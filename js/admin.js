@@ -2,7 +2,7 @@
 function setupAdminHeader(){
   document.getElementById('mainHeader').style.display='flex';
   document.getElementById('headerLogo').className='h-logo admin-logo';
-  document.getElementById('headerLogo').innerHTML='<i class="ti ti-shield-lock"></i>';
+  document.getElementById('headerLogo').innerHTML='<img src="img/logo.png" alt="logo" style="width:32px;height:32px;object-fit:contain;border-radius:6px">';
   document.getElementById('headerTitle').textContent='CHALACHOL ADMIN';
   document.getElementById('headerSub').textContent='Admin: '+(currentUser.name||'');
   document.getElementById('headerRight').innerHTML=`<div class="h-tabs">
