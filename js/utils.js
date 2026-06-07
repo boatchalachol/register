@@ -31,6 +31,7 @@ let loginAttempts=0, loginLockUntil=0, lockoutTimerId=null, lockoutCount=0, lock
 // Dashboard auto-refresh
 let dashRefreshTimer=null;
 let voteRealtimeChannel=null;
+let userVoteRealtimeChannel=null;
 
 const WHEEL_COLORS=[
   '#19d490','#f5a623','#4a9cf0','#9b6dff','#f25555',
