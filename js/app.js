@@ -997,9 +997,14 @@ if (!CONFIG_READY) {
       </div>
     </div>`;
 } else {
-  // ── 3. Boot: init Supabase then wire all event listeners ──
+  // ── 3. Boot: init Supabase, wire listeners, then try restore session ──
   initSupabase();
   wireEventListeners();
+  // Auto-restore session — ถ้ายังไม่ได้ logout จะข้ามหน้า login ทันที
+  showLoading();
+  _restoreSession().then(restored => {
+    if(!restored) hideLoading();
+  }).catch(() => hideLoading());
 }
 
 // ── 4. Event listeners ────────────────────────────────────
