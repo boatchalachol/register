@@ -5,7 +5,11 @@ let db = null;
 function initSupabase(){
   if(!CONFIG_READY)return false;
   const { createClient } = supabase;
-  db = createClient(SUPABASE_URL, SUPABASE_ANON);
+  db = createClient(SUPABASE_URL, SUPABASE_ANON, {
+    realtime: {
+      params: { eventsPerSecond: 10 }
+    }
+  });
   return true;
 }
 
@@ -32,6 +36,8 @@ let loginAttempts=0, loginLockUntil=0, lockoutTimerId=null, lockoutCount=0, lock
 let dashRefreshTimer=null;
 let voteRealtimeChannel=null;
 let userVoteRealtimeChannel=null;
+let _votePollingTimer=null;
+let _voteLastActiveIds="";
 
 const WHEEL_COLORS=[
   '#19d490','#f5a623','#4a9cf0','#9b6dff','#f25555',
@@ -310,6 +316,10 @@ async function sbGetTodayRegsForExport(){
 async function sbGetEmployees(){
   const{data,error}=await db.from('employees').select('id,name,branch,position,is_active,role').order('id');
   if(error)throw error;return data||[];
+}
+async function sbGetEmployeeById(empId){
+  const{data,error}=await db.from('employees').select('id,name,branch,position,is_active,role').eq('id',empId).maybeSingle();
+  if(error)throw error;return data||null;
 }
 async function sbAddEmployee({empId,name,branch,position,pin,role}){
   const{data:existing}=await db.from('employees').select('id').eq('id',empId).maybeSingle();
