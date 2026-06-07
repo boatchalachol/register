@@ -1124,6 +1124,15 @@ function wireEventListeners() {
     ?.addEventListener('click', loadWheelData);
   document.getElementById('btnClearWinners')
     ?.addEventListener('click', clearWinners);
+  document.getElementById('btnWheelMute')
+    ?.addEventListener('click', () => {
+      _wheelMuted = !_wheelMuted;
+      if(_wheelMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+      const icon = document.getElementById('wheelMuteIcon');
+      if(icon) icon.className = _wheelMuted ? 'ti ti-volume-off' : 'ti ti-volume';
+      const btn = document.getElementById('btnWheelMute');
+      if(btn) btn.style.color = _wheelMuted ? 'var(--red)' : '';
+    });
   document.getElementById('wfAll')
     ?.addEventListener('click', () => setWheelFilter('all', 'all', document.getElementById('wfAll')));
   document.getElementById('wfOnTime')
