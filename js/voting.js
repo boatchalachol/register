@@ -303,9 +303,6 @@ async function initVoteView() {
   _startVotePolling();
 }
 
-let _votePollingTimer = null;
-let _voteLastActiveIds = '';
-
 function _startVotePolling() {
   _stopVotePolling();
   _votePollingTimer = setInterval(async () => {
