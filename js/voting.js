@@ -281,6 +281,18 @@ async function initVoteView() {
   voteMyDoneIds = await sbGetMyVotedContests();
   await renderVoteContestList();
   showVoteStep('vstep-select');
+
+  // Realtime: subscribe contests table — อัปเดตทันทีเมื่อ admin เปิด/ปิด/สร้าง/ลบงานประกวด
+  if (userVoteRealtimeChannel) db.removeChannel(userVoteRealtimeChannel);
+  userVoteRealtimeChannel = db.channel('contests-user-' + currentUser.id)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'contests' }, async () => {
+      // ถ้า user กำลังอยู่หน้าเลือกงาน ให้ refresh list ทันที
+      const selectStep = document.getElementById('vstep-select');
+      if (selectStep && selectStep.style.display !== 'none') {
+        await renderVoteContestList();
+      }
+    })
+    .subscribe();
 }
 
 async function renderVoteContestList() {
@@ -437,4 +449,6 @@ function resetVoteState() {
   voteSelectedContest = null;
   voteSelectedScore = null;
   voteMyDoneIds = [];
+  // Cleanup realtime channel เมื่อ logout
+  if (userVoteRealtimeChannel) { db.removeChannel(userVoteRealtimeChannel); userVoteRealtimeChannel = null; }
 }
